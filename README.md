@@ -1,4 +1,4 @@
-Groep 14
+# Groep 14
 Maak een app om huishoudelijke toestellen te delen en te verhuren. Gebruikers kunnen eenvoudig huishoudelijke apparaten zoals stofzuigers, grasmaaiers of keukenmachines verhuren aan mensen in hun buurt.
 
 ## Must haves :
