@@ -2,6 +2,7 @@ package edu.ap.rentalapp
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -61,6 +62,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AddApplianceScreen(modifier: Modifier = Modifier) {
 
+    var name by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    
     Column {
         Text(
             text = "Add appliance",
@@ -74,9 +78,9 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
         HorizontalDivider()
         OutlinedTextField(
             label = { Text(text = "Name") },
-            value = "",
-            onValueChange = {
-
+            value = name,
+            onValueChange = { text ->
+                name = text
             },
             modifier = modifier
                 .padding(10.dp)
@@ -85,9 +89,9 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
         UploadImagesFromGallery()
         OutlinedTextField(
             placeholder = { Text(text = "Description...") },
-            value = "",
-            onValueChange = {
-
+            value = description,
+            onValueChange = { text ->
+                description = text
             },
             modifier = modifier
                 .padding(10.dp)
@@ -112,7 +116,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
 
         Button(
             onClick = {
-
+                Log.d("textfields", "Name: $name\nDescription: $description")
             },
             modifier = modifier
                 .padding(10.dp)
