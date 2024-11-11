@@ -28,11 +28,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun ScreenPreview() {
-    RentalAppTheme {
-        AddApplianceScreen()
-    }
-}
