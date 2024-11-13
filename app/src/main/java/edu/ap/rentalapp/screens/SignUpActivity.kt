@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import edu.ap.rentalapp.MainActivity
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.extensions.AuthResponse
 import edu.ap.rentalapp.extensions.AuthenticationManager
@@ -111,7 +112,7 @@ fun SignUpScreen(
                         authenticationManager.signUpWithEmail(email,password)
                             .onEach { response ->
                                 if(response is AuthResponse.Succes) {
-                                    Toast.makeText(context, "SUCCES", Toast.LENGTH_LONG).show()
+                                    context.startActivity(Intent(context, MainActivity::class.java))
                                 }
                                 if(response is AuthResponse.Error) {
                                     Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()

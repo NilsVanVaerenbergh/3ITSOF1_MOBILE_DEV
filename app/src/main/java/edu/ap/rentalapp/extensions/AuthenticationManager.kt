@@ -1,9 +1,11 @@
 package edu.ap.rentalapp.extensions
 
 import android.content.Context
+import android.content.Intent
 import com.google.android.gms.auth.api.Auth
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import edu.ap.rentalapp.MainActivity
 import edu.ap.rentalapp.R
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +41,11 @@ class AuthenticationManager(private val context: Context) {
             }
         }
         awaitClose()
+    }
+
+    fun signOut() {
+        auth.signOut()
+        this.context.startActivity(Intent(this.context, MainActivity::class.java))
     }
 }
 

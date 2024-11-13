@@ -4,13 +4,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.middleware.AuthActivity
 import edu.ap.rentalapp.ui.theme.RentalAppTheme
 
@@ -20,29 +27,29 @@ class MainActivity : AuthActivity() {
         enableEdgeToEdge()
         setContent {
             RentalAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+               mainScreen()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun mainScreen() {
+    val context = LocalContext.current
+    val authenticationManager = remember { AuthenticationManager(context) }
     Text(
-        text = "Hello $name!",
-        modifier = modifier
+        text = "Hello from main!",
     )
+    Spacer(modifier = Modifier.height(100.dp))
+    Button(
+        onClick = {authenticationManager.signOut()}
+    ) { Text("Log uit.") }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
     RentalAppTheme {
-        Greeting("Android")
+        mainScreen()
     }
 }

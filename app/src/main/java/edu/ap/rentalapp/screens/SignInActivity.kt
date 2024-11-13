@@ -21,6 +21,7 @@ import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.ui.theme.RentalAppTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import edu.ap.rentalapp.MainActivity
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.extensions.AuthResponse
 import kotlinx.coroutines.flow.launchIn
@@ -95,7 +96,7 @@ fun SignInScreen(
                         authenticationManager.signInWithEmail(email,password)
                             .onEach { response ->
                                 if(response is AuthResponse.Succes) {
-                                    Toast.makeText(context, "SUCCES", Toast.LENGTH_LONG).show()
+                                    context.startActivity(Intent(context, MainActivity::class.java))
                                 }
                                 if(response is AuthResponse.Error) {
                                     Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
