@@ -81,8 +81,11 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-auth:21.2.0")
 
-    val credentialsManagerVersion = "1.5.0-alpha05"
-    implementation("androidx.credentials:credentials:$credentialsManagerVersion")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0:$credentialsManagerVersion")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    // Icons
+    implementation ("androidx.compose.material3:material3:1.1.0")
+    implementation ("androidx.compose.material:material-icons-extended:1.5.2")
 }
