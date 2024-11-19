@@ -35,8 +35,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import edu.ap.rentalapp.MainActivity
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.extensions.AuthResponse
