@@ -26,8 +26,11 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ShapeDefaults
@@ -61,6 +64,10 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectImages by remember { mutableStateOf(listOf<Uri>()) }
+    var expanded by remember { mutableStateOf(false) }
+
+    var selectedCategory by remember { mutableStateOf("Select Category") }
+    val categories = listOf("Garden", "Kitchen", "Maintenance")
 
     Column(
         modifier = modifier
@@ -117,6 +124,32 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
             }
 
             item {
+                Column {
+                    OutlinedButton(
+                        onClick = { expanded = !expanded },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = selectedCategory)
+                    }
+                    DropdownMenu(
+                        modifier = modifier.fillMaxWidth(),
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        for (cat in categories) {
+                            DropdownMenuItem(
+                                text = { Text(cat) },
+                                onClick = {
+                                    selectedCategory = cat
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
                 OutlinedTextField(
                     placeholder = { Text(text = "Location") },
                     value = "Location",
@@ -138,13 +171,14 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
             item {
                 Button(
                     onClick = {
-                        Log.d("textfields", "Name: $name\nDescription: $description\n$selectImages")
+                        Log.d("textfields", "Name: $name\nDescription: $description\n$selectImages\n$selectedCategory")
                         db.collection("myAppliances")
                             .add(
                                 hashMapOf(
                                     "name" to name,
                                     "description" to description,
-                                    "images" to selectImages
+                                    "images" to selectImages,
+                                    "category" to selectedCategory
                                 )
                             )
                             .addOnSuccessListener { documentReference ->
