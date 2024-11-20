@@ -1,4 +1,4 @@
-package edu.ap.rentalapp.screens
+package edu.ap.rentalapp.ui.screens
 
 import android.net.Uri
 import android.util.Log
@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,9 +22,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedIconButton
@@ -38,19 +43,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.annotation.ExperimentalCoilApi
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 import edu.ap.rentalapp.ui.theme.Blue
 import edu.ap.rentalapp.ui.theme.RentalAppTheme
 
 @Composable
 fun AddApplianceScreen(modifier: Modifier = Modifier) {
 
+    val db = Firebase.firestore
     val paddingInBetween = 10.dp
 
     var name by remember { mutableStateOf("") }
@@ -129,7 +139,18 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
             item {
                 Button(
                     onClick = {
-                        Log.d("textfields", "Name: $name\nDescription: $description")
+                        Log.d("textfields", "Name: $name\nDescription: $description");
+                        db.collection("myAppliances")
+                            .add(hashMapOf("name" to name, "description" to description))
+                            .addOnSuccessListener { documentReference ->
+                                Log.d(
+                                    "firebase",
+                                    "DocumentSnapshot added with ID: ${documentReference.id}"
+                                )
+                            }
+                            .addOnFailureListener { e ->
+                                Log.w("firebase", "Error adding document", e)
+                            }
                     },
                     colors = ButtonDefaults.buttonColors(
                         Blue
@@ -181,18 +202,32 @@ fun UploadImagesFromGallery(modifier: Modifier = Modifier) {
 
     ) {
         items(selectImages) { uri ->
-            Image(
-                painter = rememberImagePainter(uri),
-                contentScale = ContentScale.FillWidth,
-                contentDescription = null,
-                modifier = modifier
-                    .padding(5.dp, 5.dp)
-                    .size(100.dp)
-                    .clip(shape = ShapeDefaults.Small)
-                    .border(BorderStroke(1.dp, Blue))
-                    .clickable(onClick = { selectImages -= uri })
+            Box{
+                Image(
+                    painter = rememberAsyncImagePainter(uri),
+                    contentScale = ContentScale.FillWidth,
+                    contentDescription = null,
+                    modifier = modifier
+                        .padding(5.dp, 5.dp)
+                        .size(100.dp)
+                        .clip(shape = ShapeDefaults.Small)
+                        .border(BorderStroke(1.dp, Blue))
 
-            )
+                )
+                Icon(
+                    imageVector = Icons.Sharp.Delete,
+                    contentDescription = "Remove image",
+                    tint = Color.Red,
+                    modifier = modifier
+                        .align(Alignment.TopEnd)
+                        .padding(horizontal = 10.dp)
+                        .background(Color.White, ShapeDefaults.Small)
+                        .border(1.dp, Color.Black, ShapeDefaults.Small)
+                        .clickable(onClick = { selectImages -= uri })
+                )
+
+            }
+
         }
     }
 
