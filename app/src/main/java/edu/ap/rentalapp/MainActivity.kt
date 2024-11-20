@@ -1,55 +1,31 @@
 package edu.ap.rentalapp
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import android.content.Context
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.middleware.AuthActivity
-import edu.ap.rentalapp.ui.theme.RentalAppTheme
+
 
 class MainActivity : AuthActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            RentalAppTheme {
-               mainScreen()
-            }
-        }
-    }
-}
+    override fun getTopBarTitle(): String = "Welkom"
 
-@Composable
-fun mainScreen() {
-    val context = LocalContext.current
-    val authenticationManager = remember { AuthenticationManager(context) }
-    Text(
-        text = "Hello from main!",
-    )
-    Spacer(modifier = Modifier.height(100.dp))
-    Button(
-        onClick = {authenticationManager.signOut()}
-    ) { Text("Log uit.") }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RentalAppTheme {
-        mainScreen()
+    @Composable
+    override fun ScreenContent(modifier: Modifier, context: Context) {
+        val authenticationManager = remember { AuthenticationManager(context) }
+        Text(
+            text = "This is the Home Screen.",
+            modifier = modifier
+        )
+        Spacer(modifier = Modifier.height(100.dp))
+        Button(
+            onClick = {authenticationManager.signOut()}
+        ) { Text("Log uit.") }
     }
 }

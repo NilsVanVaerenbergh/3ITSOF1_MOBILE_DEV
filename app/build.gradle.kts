@@ -70,6 +70,9 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.firestore)
+    implementation(libs.androidx.webkit)
+    implementation(libs.volley)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -89,4 +92,7 @@ dependencies {
     // Icons
     implementation ("androidx.compose.material3:material3:1.1.0")
     implementation ("androidx.compose.material:material-icons-extended:1.5.2")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.coil-kt:coil-svg:2.4.0")
+
 }

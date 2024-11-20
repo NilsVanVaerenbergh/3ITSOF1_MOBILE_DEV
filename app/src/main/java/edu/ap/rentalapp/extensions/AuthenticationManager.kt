@@ -22,15 +22,15 @@ interface AuthResponse {
 }
 
 class AuthenticationManager(private val context: Context) {
-    private val auth = Firebase.auth
+    public val auth = Firebase.auth
     fun signUpWithEmail(inEmail: String, inPassword : String): Flow<AuthResponse> = callbackFlow {
-        auth.signInWithEmailAndPassword(inEmail, inPassword).addOnCompleteListener { task ->
+        auth.createUserWithEmailAndPassword(inEmail, inPassword).addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val userId = auth.currentUser?.uid
                 if (userId != null) {
                     val userService = UserServiceSingleton.getInstance(context)
                     val username = inEmail.substringBefore("@")
-                    userService.saveUserData(userId, inEmail, username, null)
+                    userService.saveUserData(userId = userId, email = inEmail, username = username, location = null)
                         .onEach { result ->
                             result.onSuccess {
                                 trySend(AuthResponse.Succes)
