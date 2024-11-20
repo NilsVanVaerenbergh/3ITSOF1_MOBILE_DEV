@@ -58,7 +58,7 @@ class SignUpActivity : ComponentActivity() {
 fun SignUpScreen(
 ) {
     var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") } // Loading state to prevent multiple sign-in attempts
+    var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val authenticationManager = remember { AuthenticationManager(context) }
@@ -66,7 +66,7 @@ fun SignUpScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF5F5F5) // Light gray background
+        color = Color.LightGray
     ) {
         Column (
             verticalArrangement = Arrangement.Center,
