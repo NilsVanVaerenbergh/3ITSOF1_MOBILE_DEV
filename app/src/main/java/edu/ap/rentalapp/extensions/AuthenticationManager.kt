@@ -2,6 +2,7 @@ package edu.ap.rentalapp.extensions
 
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import com.google.android.gms.auth.api.Auth
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -30,7 +31,10 @@ class AuthenticationManager(private val context: Context) {
                 if (userId != null) {
                     val userService = UserServiceSingleton.getInstance(context)
                     val username = inEmail.substringBefore("@")
-                    userService.saveUserData(userId = userId, email = inEmail, username = username, location = null)
+                    userService.saveUserData(userId = userId, email = inEmail, username = username, location = Location("").apply {
+                        latitude = 0.0
+                        longitude = 0.0
+                    })
                         .onEach { result ->
                             result.onSuccess {
                                 trySend(AuthResponse.Succes)
