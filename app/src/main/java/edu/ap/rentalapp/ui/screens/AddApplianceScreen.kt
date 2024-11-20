@@ -22,13 +22,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedIconButton
@@ -49,9 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import edu.ap.rentalapp.ui.theme.Blue
@@ -65,6 +60,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
 
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
+    var selectImages by remember { mutableStateOf(listOf<Uri>()) }
 
     Column(
         modifier = modifier
@@ -100,7 +96,10 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
             }
 
             item {
-                UploadImagesFromGallery()
+                UploadImagesFromGallery(
+                    selectImages = selectImages,
+                    onImagesSelected = { images -> selectImages = images }
+                )
             }
 
             item {
@@ -139,9 +138,15 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
             item {
                 Button(
                     onClick = {
-                        Log.d("textfields", "Name: $name\nDescription: $description");
+                        Log.d("textfields", "Name: $name\nDescription: $description\n$selectImages")
                         db.collection("myAppliances")
-                            .add(hashMapOf("name" to name, "description" to description))
+                            .add(
+                                hashMapOf(
+                                    "name" to name,
+                                    "description" to description,
+                                    "images" to selectImages
+                                )
+                            )
                             .addOnSuccessListener { documentReference ->
                                 Log.d(
                                     "firebase",
@@ -172,14 +177,17 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
 }
 
 // https://www.howtodoandroid.com/pick-image-from-gallery-jetpack-compose/
-@OptIn(ExperimentalCoilApi::class)
 @Composable
-fun UploadImagesFromGallery(modifier: Modifier = Modifier) {
+fun UploadImagesFromGallery(
+    modifier: Modifier = Modifier,
+    selectImages: List<Uri>,
+    onImagesSelected: (List<Uri>) -> Unit
+) {
 
-    var selectImages by remember { mutableStateOf(listOf<Uri>()) }
+    //var selectImages by remember { mutableStateOf(listOf<Uri>()) }
     val galleryLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) {
-            selectImages += it
+            onImagesSelected(it)
         }
 
     OutlinedIconButton(
@@ -202,7 +210,7 @@ fun UploadImagesFromGallery(modifier: Modifier = Modifier) {
 
     ) {
         items(selectImages) { uri ->
-            Box{
+            Box {
                 Image(
                     painter = rememberAsyncImagePainter(uri),
                     contentScale = ContentScale.FillWidth,
@@ -223,7 +231,11 @@ fun UploadImagesFromGallery(modifier: Modifier = Modifier) {
                         .padding(horizontal = 10.dp)
                         .background(Color.White, ShapeDefaults.Small)
                         .border(1.dp, Color.Black, ShapeDefaults.Small)
-                        .clickable(onClick = { selectImages -= uri })
+                        .clickable(onClick = {
+                            val updatedImages = selectImages.toMutableList()
+                            updatedImages.remove(uri)
+                            onImagesSelected(updatedImages)
+                        })
                 )
 
             }
