@@ -1,6 +1,8 @@
 package edu.ap.rentalapp.ui.screens
 
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -25,6 +27,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -59,18 +62,18 @@ import edu.ap.rentalapp.ui.theme.Blue
 @Composable
 fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostController) {
 
-    val db = Firebase.firestore
     val paddingInBetween = 10.dp
 
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedImages by remember { mutableStateOf(listOf<Uri>()) }
     var expanded by remember { mutableStateOf(false) }
-
     var selectedCategory by remember { mutableStateOf("Select Category") }
-    val categories = listOf("Garden", "Kitchen", "Maintenance")
+    val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
+    var loading by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+
     Column(
         modifier = modifier
             .padding(15.dp)
@@ -171,35 +174,45 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
 
             item {
+                val isFormValid =
+                    name.isNotBlank() && description.isNotBlank() && selectedCategory.isNotEmpty() && selectedImages.isNotEmpty()
                 Button(
                     onClick = {
-                        UploadImagesToFirebase(
-                            name = name,
-                            description = description,
-                            category = selectedCategory,
-                            images = selectedImages
-                        )
-
-//                        db.collection("myAppliances")
-//                            .add(
-//                                hashMapOf(
-//                                    "name" to name,
-//                                    "description" to description,
-//                                    "images" to selectedImages,
-//                                    "category" to selectedCategory
-//                                )
-//                            )
-//                            .addOnSuccessListener { documentReference ->
-//                                Log.d(
-//                                    "firebase",
-//                                    "DocumentSnapshot added with ID: ${documentReference.id}"
-//                                )
-//                                //Toast.makeText(context, "Item added successfully!", Toast.LENGTH_SHORT).show()
-//                            }
-//                            .addOnFailureListener { e ->
-//                                Log.w("firebase", "Error adding document", e)
-//                            }
-                        navController.navigate("myRentals")
+                        if (isFormValid) {
+                            loading = true
+                            uploadImagesToFirebase(
+                                name = name,
+                                description = description,
+                                category = if (selectedCategory == "Select Category") "Other" else selectedCategory,
+                                images = selectedImages,
+                                onSuccess = {
+                                    loading = false
+                                    Log.d("firebase", "Item added successfully!")
+                                    Toast.makeText(
+                                        context,
+                                        "Item added successfully!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onError = { exception ->
+                                    loading = false
+                                    Log.d("firebase", "Error adding item", exception)
+                                    Toast.makeText(
+                                        context,
+                                        "Error adding item: $exception",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            )
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Please fill in all fields and select at least one image.",
+                                Toast.LENGTH_LONG
+                            )
+                                .show()
+                        }
+                        // navController.navigate("myRentals")
                     },
                     colors = ButtonDefaults.buttonColors(
                         Blue
@@ -220,6 +233,17 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 Button(onClick = { navController.navigate("myRentals") }) {
                     Text("My Rentals")
                 }
+            }
+        }
+
+        if (loading){
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .clickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ){
+                CircularProgressIndicator()
             }
         }
     }
@@ -295,11 +319,13 @@ fun UploadImagesFromGallery(
 }
 
 
-fun UploadImagesToFirebase(
+fun uploadImagesToFirebase(
     name: String,
     description: String,
     category: String,
     images: List<Uri>,
+    onSuccess: () -> Unit,
+    onError: (Exception) -> Unit
     //modifier: Modifier = Modifier
 ) {
     val storage = FirebaseStorage.getInstance()
@@ -314,6 +340,9 @@ fun UploadImagesToFirebase(
 
         imageReference.putFile(uri)
             .continueWithTask { task ->
+                if (!task.isSuccessful) {
+                    task.exception?.let { throw it }
+                }
                 imageReference.downloadUrl
             }
             .addOnSuccessListener { downloadUrl ->
@@ -332,8 +361,8 @@ fun UploadImagesToFirebase(
 
             firestore.collection("myAppliances")
                 .add(appliance)
-                .addOnSuccessListener { }
-                .addOnFailureListener { }
+                .addOnSuccessListener { onSuccess() }
+                .addOnFailureListener { exception -> onError(exception) }
         }
-        .addOnFailureListener {}
+        .addOnFailureListener { exception -> onError(exception) }
 }
