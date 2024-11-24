@@ -1,7 +1,6 @@
 package edu.ap.rentalapp.ui.screens
 
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -45,30 +44,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.google.firebase.storage.FirebaseStorage
 import edu.ap.rentalapp.ui.theme.Blue
-import edu.ap.rentalapp.ui.theme.RentalAppTheme
 
 @Composable
-fun AddApplianceScreen(modifier: Modifier = Modifier) {
+fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostController) {
 
     val db = Firebase.firestore
     val paddingInBetween = 10.dp
 
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var selectImages by remember { mutableStateOf(listOf<Uri>()) }
+    var selectedImages by remember { mutableStateOf(listOf<Uri>()) }
     var expanded by remember { mutableStateOf(false) }
 
     var selectedCategory by remember { mutableStateOf("Select Category") }
     val categories = listOf("Garden", "Kitchen", "Maintenance")
 
+    val context = LocalContext.current
     Column(
         modifier = modifier
             .padding(15.dp)
@@ -104,8 +106,8 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
 
             item {
                 UploadImagesFromGallery(
-                    selectImages = selectImages,
-                    onImagesSelected = { images -> selectImages = images }
+                    images = selectedImages,
+                    onImagesSelected = { images -> selectedImages = images }
                 )
             }
 
@@ -171,25 +173,33 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
             item {
                 Button(
                     onClick = {
-                        Log.d("textfields", "Name: $name\nDescription: $description\n$selectImages\n$selectedCategory")
-                        db.collection("myAppliances")
-                            .add(
-                                hashMapOf(
-                                    "name" to name,
-                                    "description" to description,
-                                    "images" to selectImages,
-                                    "category" to selectedCategory
-                                )
-                            )
-                            .addOnSuccessListener { documentReference ->
-                                Log.d(
-                                    "firebase",
-                                    "DocumentSnapshot added with ID: ${documentReference.id}"
-                                )
-                            }
-                            .addOnFailureListener { e ->
-                                Log.w("firebase", "Error adding document", e)
-                            }
+                        UploadImagesToFirebase(
+                            name = name,
+                            description = description,
+                            category = selectedCategory,
+                            images = selectedImages
+                        )
+
+//                        db.collection("myAppliances")
+//                            .add(
+//                                hashMapOf(
+//                                    "name" to name,
+//                                    "description" to description,
+//                                    "images" to selectedImages,
+//                                    "category" to selectedCategory
+//                                )
+//                            )
+//                            .addOnSuccessListener { documentReference ->
+//                                Log.d(
+//                                    "firebase",
+//                                    "DocumentSnapshot added with ID: ${documentReference.id}"
+//                                )
+//                                //Toast.makeText(context, "Item added successfully!", Toast.LENGTH_SHORT).show()
+//                            }
+//                            .addOnFailureListener { e ->
+//                                Log.w("firebase", "Error adding document", e)
+//                            }
+                        navController.navigate("myRentals")
                     },
                     colors = ButtonDefaults.buttonColors(
                         Blue
@@ -205,6 +215,12 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
                 }
 
             }
+
+            item {
+                Button(onClick = { navController.navigate("myRentals") }) {
+                    Text("My Rentals")
+                }
+            }
         }
     }
 
@@ -214,14 +230,13 @@ fun AddApplianceScreen(modifier: Modifier = Modifier) {
 @Composable
 fun UploadImagesFromGallery(
     modifier: Modifier = Modifier,
-    selectImages: List<Uri>,
+    images: List<Uri>,
     onImagesSelected: (List<Uri>) -> Unit
 ) {
 
-    //var selectImages by remember { mutableStateOf(listOf<Uri>()) }
     val galleryLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) {
-            onImagesSelected(it)
+            onImagesSelected(images + it)
         }
 
     OutlinedIconButton(
@@ -243,7 +258,7 @@ fun UploadImagesFromGallery(
             .padding(vertical = 10.dp)
 
     ) {
-        items(selectImages) { uri ->
+        items(images) { uri ->
             Box {
                 Image(
                     painter = rememberAsyncImagePainter(uri),
@@ -266,7 +281,7 @@ fun UploadImagesFromGallery(
                         .background(Color.White, ShapeDefaults.Small)
                         .border(1.dp, Color.Black, ShapeDefaults.Small)
                         .clickable(onClick = {
-                            val updatedImages = selectImages.toMutableList()
+                            val updatedImages = images.toMutableList()
                             updatedImages.remove(uri)
                             onImagesSelected(updatedImages)
                         })
@@ -279,10 +294,46 @@ fun UploadImagesFromGallery(
 
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ScreenPreview() {
-    RentalAppTheme {
-        AddApplianceScreen()
+
+fun UploadImagesToFirebase(
+    name: String,
+    description: String,
+    category: String,
+    images: List<Uri>,
+    //modifier: Modifier = Modifier
+) {
+    val storage = FirebaseStorage.getInstance()
+    val storageReference = storage.reference
+
+    val firestore = Firebase.firestore
+
+    val imageUrls = mutableListOf<String>()
+
+    val uploads = images.map { uri ->
+        val imageReference = storageReference.child("images/" + uri.lastPathSegment)
+
+        imageReference.putFile(uri)
+            .continueWithTask { task ->
+                imageReference.downloadUrl
+            }
+            .addOnSuccessListener { downloadUrl ->
+                imageUrls.add(downloadUrl.toString())
+            }
     }
+
+    Tasks.whenAllComplete(uploads)
+        .addOnSuccessListener {
+            val appliance = hashMapOf(
+                "name" to name,
+                "description" to description,
+                "images" to imageUrls,
+                "category" to category
+            )
+
+            firestore.collection("myAppliances")
+                .add(appliance)
+                .addOnSuccessListener { }
+                .addOnFailureListener { }
+        }
+        .addOnFailureListener {}
 }
