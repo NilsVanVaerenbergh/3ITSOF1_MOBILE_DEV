@@ -35,8 +35,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import edu.ap.rentalapp.MainActivity
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.extensions.AuthResponse
@@ -60,7 +58,7 @@ class SignUpActivity : ComponentActivity() {
 fun SignUpScreen(
 ) {
     var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") } // Loading state to prevent multiple sign-in attempts
+    var password by remember { mutableStateOf("") }
 
     val context = LocalContext.current
     val authenticationManager = remember { AuthenticationManager(context) }
@@ -68,7 +66,7 @@ fun SignUpScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF5F5F5) // Light gray background
+        color = Color.LightGray
     ) {
         Column (
             verticalArrangement = Arrangement.Center,
