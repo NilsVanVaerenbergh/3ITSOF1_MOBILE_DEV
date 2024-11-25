@@ -19,7 +19,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.middleware.AuthActivity
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import edu.ap.rentalapp.ui.theme.RentalAppTheme
+import edu.ap.rentalapp.ui.screens.AddApplianceScreen
+import edu.ap.rentalapp.ui.screens.MyRentalsScreen
 
 class MainActivity : AuthActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,29 +32,28 @@ class MainActivity : AuthActivity() {
         enableEdgeToEdge()
         setContent {
             RentalAppTheme {
-               mainScreen()
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "addAppliance") {
+                        composable("addAppliance") {
+                            AddApplianceScreen(
+                                modifier = Modifier.padding(
+                                    innerPadding
+                                ), navController = navController
+                            )
+                        }
+                        composable(
+                            route = "myRentals"
+                        ) {
+                            MyRentalsScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                navController = navController
+                            )
+                        }
+                    }
+
+                }
             }
         }
-    }
-}
-
-@Composable
-fun mainScreen() {
-    val context = LocalContext.current
-    val authenticationManager = remember { AuthenticationManager(context) }
-    Text(
-        text = "Hello from main!",
-    )
-    Spacer(modifier = Modifier.height(100.dp))
-    Button(
-        onClick = {authenticationManager.signOut()}
-    ) { Text("Log uit.") }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RentalAppTheme {
-        mainScreen()
     }
 }
