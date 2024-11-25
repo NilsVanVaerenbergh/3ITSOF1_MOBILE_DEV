@@ -7,11 +7,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import edu.ap.rentalapp.ui.theme.RentalAppTheme
+import edu.ap.rentalapp.ui.screens.AddApplianceScreen
+import edu.ap.rentalapp.ui.screens.MyRentalsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,28 +22,28 @@ class MainActivity : ComponentActivity() {
         setContent {
             RentalAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "addAppliance") {
+                        composable("addAppliance") {
+                            AddApplianceScreen(
+                                modifier = Modifier.padding(
+                                    innerPadding
+                                ), navController = navController
+                            )
+                        }
+                        composable(
+                            route = "myRentals"
+                        ) {
+
+                            MyRentalsScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                navController = navController
+                            )
+                        }
+                    }
+
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RentalAppTheme {
-        Greeting("Android")
     }
 }
