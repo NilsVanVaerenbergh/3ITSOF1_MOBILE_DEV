@@ -11,21 +11,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.middleware.AuthActivity
-
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import edu.ap.rentalapp.ui.theme.RentalAppTheme
+import edu.ap.rentalapp.ui.screens.AddApplianceScreen
+import edu.ap.rentalapp.ui.screens.MyRentalsScreen
 
 class MainActivity : AuthActivity() {
     override fun getTopBarTitle(): String = "Welkom"
-
     @Composable
     override fun ScreenContent(modifier: Modifier, context: Context) {
         val authenticationManager = remember { AuthenticationManager(context) }
-        Text(
-            text = "This is the Home Screen.",
-            modifier = modifier
-        )
-        Spacer(modifier = Modifier.height(100.dp))
-        Button(
-            onClick = {authenticationManager.signOut()}
-        ) { Text("Log uit.") }
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "addAppliance") {
+                        composable("addAppliance") {
+                            AddApplianceScreen(
+                                modifier = Modifier.padding(
+                                    innerPadding
+                                ), navController = navController
+                            )
+                        }
+                        composable(
+                            route = "myRentals"
+                        ) {
+                            MyRentalsScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                navController = navController
+                            )
+                        }
+                    }
+
+                }
     }
 }
