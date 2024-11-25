@@ -27,6 +27,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".screens.SignInActivity"  android:theme="@style/Theme.RentalApp"/>
+        <activity android:name=".screens.SignUpActivity"  android:theme="@style/Theme.RentalApp"/>
     </application>
 
 </manifest>

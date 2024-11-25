@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_global">Er ging iets verkeerd.</string>
+    <string name="error_network">Netwerkfout! probeer opnieuw.</string>
+    <string name="error_empty_input">Je moet iets meegeven.</string>
+</resources>
