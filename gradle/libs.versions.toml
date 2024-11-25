@@ -10,7 +10,6 @@ lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.3"
 composeBom = "2024.04.01"
 googleGmsGoogleServices = "4.4.2"
-feature-1-als-gebruiker-wil-ik-mij-kunnen-registreren-of-inloggen
 firebaseAuth = "23.1.0"
 playServicesAuth = "21.2.0"
 appcompat = "1.7.0"
