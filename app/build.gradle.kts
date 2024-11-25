@@ -8,6 +8,10 @@ android {
     namespace = "edu.ap.rentalapp"
     compileSdk = 34
 
+    buildFeatures {
+        viewBinding=true
+    }
+
     defaultConfig {
         applicationId = "edu.ap.rentalapp"
         minSdk = 24
@@ -64,8 +68,17 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.play.services.auth)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.constraintlayout)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.firestore)
+    implementation(libs.androidx.webkit)
+    implementation(libs.volley)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,4 +86,26 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // FIREBASE Dependencies
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    // Icons
+    implementation ("androidx.compose.material3:material3:1.1.0")
+    implementation ("androidx.compose.material:material-icons-extended:1.5.2")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("io.coil-kt:coil-svg:2.4.0")
+
+    //MAP
+    implementation ("org.osmdroid:osmdroid-android:6.1.14")
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+    implementation ("com.beust:klaxon:5.4")
+    implementation ("com.google.accompanist:accompanist-permissions:0.32.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.11.0")
+
 }
