@@ -35,12 +35,19 @@ import com.google.firebase.auth.FirebaseAuth
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.screens.SignInActivity
 import edu.ap.rentalapp.screens.UserProfileActivity
+import org.osmdroid.config.Configuration
+import java.io.File
 
 abstract class AuthActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Configuration.getInstance().apply {
+            userAgentValue = BuildConfig.APPLICATION_ID
+            osmdroidBasePath = File(filesDir, "osmdroid")
+            osmdroidTileCache = File(osmdroidBasePath, "tiles")
+        }
         auth = FirebaseAuth.getInstance()
         checkAuthentication()
 

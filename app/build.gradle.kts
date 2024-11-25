@@ -95,4 +95,10 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("io.coil-kt:coil-svg:2.4.0")
 
+    //MAP
+    implementation ("org.osmdroid:osmdroid-android:6.1.14")
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+    implementation ("com.beust:klaxon:5.4")
+    implementation ("com.google.accompanist:accompanist-permissions:0.32.0")
+
 }

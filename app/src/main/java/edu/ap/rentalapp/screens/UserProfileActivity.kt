@@ -56,7 +56,8 @@ class UserProfileActivity : AuthActivity() {
         var userData by remember { mutableStateOf<User?>(null) }
 
         val userId = user?.uid.toString()
-        Column (modifier = modifier.fillMaxWidth(), // Ensure proper padding for visibility
+        Column (modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)// Ensure proper padding for visibility
             ) {
 
             if(user == null) {
@@ -100,7 +101,7 @@ class UserProfileActivity : AuthActivity() {
                     userData != null -> {
                         // Display user data UI
                         Row(
-                            modifier = modifier.fillMaxWidth(),
+                            modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.Bottom
 

@@ -1,19 +1,16 @@
 package edu.ap.rentalapp.screens
 
 import android.content.Context
-import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import edu.ap.rentalapp.R
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import edu.ap.rentalapp.middleware.AuthActivity
 
 class EditLocationActivity : AuthActivity() {
     override fun getTopBarTitle(): String = "Wijzig locatie"
 
+    @OptIn(ExperimentalPermissionsApi::class)
     @Composable
-    override fun ScreenContent(modifier: Modifier, context: Context) {}
+    override fun ScreenContent(modifier: Modifier, context: Context) {
+    }
 }
