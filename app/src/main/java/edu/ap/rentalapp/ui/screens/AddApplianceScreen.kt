@@ -1,5 +1,7 @@
 package edu.ap.rentalapp.ui.screens
 
+import android.content.Context
+import android.location.Geocoder
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -12,8 +14,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,6 +28,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.sharp.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,6 +44,7 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,7 +63,10 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
+import edu.ap.rentalapp.components.OSM
 import edu.ap.rentalapp.ui.theme.Blue
+import java.util.Locale
+
 
 @Composable
 fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostController) {
@@ -71,6 +80,12 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var selectedCategory by remember { mutableStateOf("Select Category") }
     val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
     var loading by remember { mutableStateOf(false) }
+
+    // Map variables
+    var address by remember { mutableStateOf("") }
+    var latitude by remember { mutableDoubleStateOf(0.0) }
+    var longitude by remember { mutableDoubleStateOf(0.0) }
+    var zoomLevel by remember { mutableDoubleStateOf(18.0) }
 
     val context = LocalContext.current
 
@@ -129,7 +144,11 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
 
             item {
-                Column {
+                Column(
+                    modifier = modifier
+                        .padding(vertical = paddingInBetween)
+                        .fillMaxWidth()
+                ) {
                     OutlinedButton(
                         onClick = { expanded = !expanded },
                         modifier = Modifier.fillMaxWidth()
@@ -157,34 +176,81 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             item {
                 OutlinedTextField(
                     placeholder = { Text(text = "Location") },
-                    value = "Location",
-                    onValueChange = {
-
-                    },
+                    value = address,
+                    onValueChange = { address = it },
                     shape = ShapeDefaults.Small,
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Location icon",
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search icon",
                         )
                     },
                     modifier = modifier
+                        .padding(vertical = paddingInBetween)
                         .fillMaxWidth()
                 )
             }
 
             item {
+                Button(
+                    onClick = {
+                        findGeoLocationFromAddress(
+                            address = address,
+                            context = context,
+                            assignLat = { lat ->
+                                latitude = lat
+                            },
+                            assignLon = { lon ->
+                                longitude = lon
+                            },
+                        )
+
+                    },
+                    modifier = modifier
+                        .padding(vertical = paddingInBetween)
+                        .fillMaxWidth()
+                ) {
+                    Row {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Location icon"
+                        )
+                        Text("Find Location")
+                    }
+
+                }
+
+            }
+
+            item {
+                OSM(
+                    modifier = modifier
+                        .padding(vertical = 50.dp)
+                        .height(100.dp),
+                    latitude = latitude,
+                    longitude = longitude,
+                    zoomLevel = 18.0,
+                    context = context,
+                )
+
+            }
+
+            item {
+                val validLocation = address.isNotBlank() && longitude != 0.0 && latitude != 0.0
                 val isFormValid =
                     name.isNotBlank() && description.isNotBlank() && selectedCategory.isNotEmpty() && selectedImages.isNotEmpty()
                 Button(
                     onClick = {
-                        if (isFormValid) {
+                        if (isFormValid && validLocation) {
                             loading = true
-                            uploadImagesToFirebase(
+                            uploadApplianceToFirebase(
                                 name = name,
                                 description = description,
                                 category = if (selectedCategory == "Select Category") "Other" else selectedCategory,
                                 images = selectedImages,
+                                address = address,
+                                longitude = longitude,
+                                latitude = latitude,
                                 onSuccess = {
                                     loading = false
                                     Log.d("firebase", "Item added successfully!")
@@ -220,7 +286,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                     modifier = modifier
                         .align(Alignment.CenterHorizontally)
                         .fillMaxWidth()
-                        .padding(vertical = 20.dp)
+                        .padding(vertical = 100.dp)
 
 
                 ) {
@@ -236,13 +302,13 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
         }
 
-        if (loading){
+        if (loading) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
                     .clickable(enabled = false) {},
                 contentAlignment = Alignment.Center
-            ){
+            ) {
                 CircularProgressIndicator()
             }
         }
@@ -319,11 +385,14 @@ fun UploadImagesFromGallery(
 }
 
 
-fun uploadImagesToFirebase(
+fun uploadApplianceToFirebase(
     name: String,
     description: String,
     category: String,
     images: List<Uri>,
+    address: String,
+    longitude: Double,
+    latitude: Double,
     onSuccess: () -> Unit,
     onError: (Exception) -> Unit
     //modifier: Modifier = Modifier
@@ -356,7 +425,11 @@ fun uploadImagesToFirebase(
                 "name" to name,
                 "description" to description,
                 "images" to imageUrls,
-                "category" to category
+                "category" to category,
+                "address" to address,
+                "latitude" to latitude,
+                "longitude" to longitude
+
             )
 
             firestore.collection("myAppliances")
@@ -365,4 +438,38 @@ fun uploadImagesToFirebase(
                 .addOnFailureListener { exception -> onError(exception) }
         }
         .addOnFailureListener { exception -> onError(exception) }
+
+}
+
+fun findGeoLocationFromAddress(
+    address: String,
+    assignLat: (latitude: Double) -> Unit,
+    assignLon: (longitude: Double) -> Unit,
+    context: Context
+){
+    if (address.isNotBlank()) {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        try {
+            val results = geocoder.getFromLocationName(address, 1)
+            if (results != null) {
+                if (results.isNotEmpty()) {
+                    val location = results[0]
+                    assignLat(location.latitude)
+                    assignLon(location.longitude)
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Location not found",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        } catch (e: Exception) {
+            Toast.makeText(
+                context,
+                "Error: ${e.localizedMessage}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
 }

@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">RentalApp</string>
+    <string name="web_client_id">999226656726-2do85i4q9l2rlnomqg6sp7j8t8g43hv5.apps.googleusercontent.com</string>
+    <string name="title_activity_edit_user_name">EditUserNameActivity</string>
+    <string name="urlSearch" />
 </resources>
