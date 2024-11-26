@@ -74,7 +74,7 @@ abstract class AuthActivity : ComponentActivity() {
                         .clickable { onProfileClick() }
                 )
             },
-            colors = TopAppBarDefaults.smallTopAppBarColors(
+            colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.White
             )
         )
