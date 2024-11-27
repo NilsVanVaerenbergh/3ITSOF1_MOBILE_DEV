@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import edu.ap.rentalapp.ui.screens.AddApplianceScreen
 import edu.ap.rentalapp.ui.screens.MyRentalsScreen
+import edu.ap.rentalapp.ui.screens.rentalOverViewScreen
 
 class MainActivity : AuthActivity() {
     override fun getTopBarTitle(): String = "Welkom"
@@ -22,12 +23,18 @@ class MainActivity : AuthActivity() {
         val authenticationManager = remember { AuthenticationManager(context) }
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
-                    NavHost(navController = navController, startDestination = "addAppliance") {
+                    NavHost(navController = navController, startDestination = "rentalsOverview") {
                         composable("addAppliance") {
                             AddApplianceScreen(
                                 modifier = Modifier.padding(
                                     innerPadding
                                 ), navController = navController
+                            )
+                        }
+                        composable(route = "rentalsOverview") {
+                            rentalOverViewScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                navController = navController
                             )
                         }
                         composable(
@@ -39,7 +46,6 @@ class MainActivity : AuthActivity() {
                             )
                         }
                     }
-
                 }
     }
 }
