@@ -268,15 +268,15 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                         "Error adding item: $exception",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                }
+                                },
+                                navController = navController
                             )
                         } else {
                             Toast.makeText(
                                 context,
                                 "Please fill in all fields and select at least one image.",
                                 Toast.LENGTH_LONG
-                            )
-                                .show()
+                            ).show()
                         }
                         // navController.navigate("myRentals")
                     },
@@ -286,7 +286,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                     modifier = modifier
                         .align(Alignment.CenterHorizontally)
                         .fillMaxWidth()
-                        .padding(vertical = 100.dp)
+                        .padding(top = 50.dp)
 
 
                 ) {
@@ -296,8 +296,8 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
 
             item {
-                Button(onClick = { navController.navigate("myRentals") }) {
-                    Text("My Rentals")
+                OutlinedButton(onClick = { navController.navigate("myRentals") }) {
+                    Text("To rentals")
                 }
             }
         }
@@ -394,7 +394,8 @@ fun uploadApplianceToFirebase(
     longitude: Double,
     latitude: Double,
     onSuccess: () -> Unit,
-    onError: (Exception) -> Unit
+    onError: (Exception) -> Unit,
+    navController: NavHostController
     //modifier: Modifier = Modifier
 ) {
     val storage = FirebaseStorage.getInstance()
@@ -404,7 +405,7 @@ fun uploadApplianceToFirebase(
 
     val imageUrls = mutableListOf<String>()
 
-    val uploads = images.map { uri ->
+    val imageUploads = images.map { uri ->
         val imageReference = storageReference.child("images/" + uri.lastPathSegment)
 
         imageReference.putFile(uri)
@@ -419,7 +420,7 @@ fun uploadApplianceToFirebase(
             }
     }
 
-    Tasks.whenAllComplete(uploads)
+    val applianceUpload = Tasks.whenAllComplete(imageUploads)
         .addOnSuccessListener {
             val appliance = hashMapOf(
                 "name" to name,
@@ -436,8 +437,17 @@ fun uploadApplianceToFirebase(
                 .add(appliance)
                 .addOnSuccessListener { onSuccess() }
                 .addOnFailureListener { exception -> onError(exception) }
+
+            navController.navigate("myRentals")
         }
         .addOnFailureListener { exception -> onError(exception) }
+
+    Tasks.whenAllComplete(applianceUpload)
+        .addOnSuccessListener{
+            navController.navigate("myRentals")
+        }
+        .addOnFailureListener { exception -> onError(exception) }
+
 
 }
 
@@ -446,7 +456,7 @@ fun findGeoLocationFromAddress(
     assignLat: (latitude: Double) -> Unit,
     assignLon: (longitude: Double) -> Unit,
     context: Context
-){
+) {
     if (address.isNotBlank()) {
         val geocoder = Geocoder(context, Locale.getDefault())
         try {

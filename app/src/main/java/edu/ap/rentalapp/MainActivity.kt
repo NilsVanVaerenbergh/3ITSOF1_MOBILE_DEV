@@ -13,7 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import edu.ap.rentalapp.ui.screens.AddApplianceScreen
-import edu.ap.rentalapp.ui.screens.MyRentalsScreen
+import edu.ap.rentalapp.ui.screens.myRentals.MyRentalsScreen
 
 class MainActivity : AuthActivity() {
     override fun getTopBarTitle(): String = "Welkom"
