@@ -1,6 +1,5 @@
 package edu.ap.rentalapp.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,18 +17,27 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,12 +57,17 @@ import edu.ap.rentalapp.extensions.RentalService
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController) {
     val context = LocalContext.current
     val rentalService = RentalServiceSingleton.getInstance(context)
     val rentalList = remember { mutableStateOf<List<Appliance>>(emptyList()) }
     val loading = remember { mutableStateOf(true) }
+    val selectedItem = remember { mutableStateOf<String?>(null) }
+    val dropdownExpanded = remember { mutableStateOf(false) }
+    var search by remember { mutableStateOf("") }
+    val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
 
     // Get the CoroutineScope for launching coroutines
     val coroutineScope = rememberCoroutineScope()
@@ -70,32 +82,95 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
 
     // Swipe refresh state to handle pull-to-refresh
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = loading.value)
+    Column {
+        OutlinedTextField(
+            value = search,
+            onValueChange = { text ->
+                search = text
+            },
+            placeholder = { Text("Search...") },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search icon"
+                )
+            },
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(15.dp)
+                .padding(top = 30.dp)
 
-    SwipeRefresh(
-        state = swipeRefreshState,
-        onRefresh = {
-            // Trigger the refresh when pulled down
-            coroutineScope.launch {
-                fetchRentals(rentalService, rentalList, loading)
+        )
+        Row {
+            ExposedDropdownMenuBox(
+                expanded = dropdownExpanded.value,
+                onExpandedChange = { dropdownExpanded.value = it }
+            ) {
+                TextField(
+                    value = selectedItem.value ?: "Select Option",
+                    onValueChange = {},
+                    label = { Text("Zoek op categorie") },
+                    readOnly = true,
+                    modifier = Modifier.menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = dropdownExpanded.value,
+                    onDismissRequest = { dropdownExpanded.value = false }
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(text = category) },
+                            onClick = {
+                                selectedItem.value = category
+                                dropdownExpanded.value = false
+                            }
+                        )
+                    }
+                }
+            }
+            Button(
+                onClick = {
+                    selectedItem.value = ""
+                }
+            ) {
+                Text("Verwijder filter")
             }
         }
-    ) {
-        Column(modifier = modifier.fillMaxWidth()) {
-            // Loading indicator
-            if (loading.value) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else {
-                // If no rentals are available, show a message
-                if (rentalList.value.isEmpty()) {
-                    Text(
-                        text = "No rentals available",
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+        SwipeRefresh(
+            state = swipeRefreshState,
+            onRefresh = {
+                // Trigger the refresh when pulled down
+                coroutineScope.launch {
+                    fetchRentals(rentalService, rentalList, loading)
+                }
+            }
+        ) {
+            Column(modifier = modifier.fillMaxWidth()) {
+                // Loading indicator
+                if (loading.value) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
-                    // Show the rental list
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(rentalList.value) { appliance ->
-                            CustomCard(appliance)
+                    // If no rentals are available, show a message
+                    if (rentalList.value.isEmpty()) {
+                        Text(
+                            text = "No rentals available",
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    } else {
+                        // Filter rentals based on search and category
+                        val filteredRentals = remember(rentalList.value, search, selectedItem.value) {
+                            rentalList.value.filter { product ->
+                                product.name.lowercase().contains(search.lowercase()) &&
+                                        (selectedItem.value == null ||
+                                                product.category.lowercase().contains(selectedItem.value!!.lowercase()))
+                            }
+                        }
+
+                        // Show the rental list
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(filteredRentals) { appliance ->
+                                CustomCard(appliance)
+                            }
                         }
                     }
                 }
