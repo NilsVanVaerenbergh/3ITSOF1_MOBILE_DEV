@@ -1,6 +1,5 @@
 package edu.ap.rentalapp.middleware
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -29,8 +28,8 @@ import coil.decode.SvgDecoder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import edu.ap.rentalapp.R
-import edu.ap.rentalapp.screens.SignInActivity
-import edu.ap.rentalapp.screens.UserProfileActivity
+import edu.ap.rentalapp.ui.screens.SignInActivity
+import edu.ap.rentalapp.ui.screens.UserProfileActivity
 
 abstract class AuthActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth

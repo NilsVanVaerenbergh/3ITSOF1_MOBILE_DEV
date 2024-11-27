@@ -1,4 +1,4 @@
-package edu.ap.rentalapp.screens
+package edu.ap.rentalapp.ui.screens
 
 import android.content.Context
 import android.location.Location
@@ -25,11 +25,9 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import edu.ap.rentalapp.middleware.AuthActivity
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
