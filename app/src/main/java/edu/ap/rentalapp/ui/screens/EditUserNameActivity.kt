@@ -2,6 +2,7 @@ package edu.ap.rentalapp.ui.screens
 
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
@@ -21,13 +22,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.entities.User
+import edu.ap.rentalapp.extensions.AuthResponse
+import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import edu.ap.rentalapp.middleware.AuthActivity
+import kotlinx.coroutines.flow.onEach
 
 
 class EditUserNameActivity : AuthActivity() {
     override fun getTopBarTitle(): String = "Wijzig naam"
     @Composable
     override fun ScreenContent(modifier: Modifier, context: Context) {
+        val userService = UserServiceSingleton.getInstance(context)
         var userData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("user_data", User::class.java)
         } else {
@@ -46,9 +51,24 @@ class EditUserNameActivity : AuthActivity() {
                         if(username.isEmpty()) {
                             Toast.makeText(context, context.getString(R.string.error_empty_input), Toast.LENGTH_LONG)
                         } else {
-                            userData?.username = username
-                            Log.d("USER", userData.toString())
-                            Toast.makeText(context, "naam aangepast!", Toast.LENGTH_LONG)
+                            if(userData != null) {
+                                userData?.username = username
+                                val location = Location("custom_provider").apply {
+                                    latitude = userData.lat.toDouble()
+                                    longitude = userData.lon.toDouble()
+                                }
+                                userService.saveUserData(userData.userId, userData.username, userData.email, location).onEach { result ->
+                                    result.onSuccess {
+                                        backToProfile()
+                                    }.onFailure { exception ->
+                                        Toast.makeText(context, "Ging iets fout bij het updaten van de user", Toast.LENGTH_LONG)
+                                    }
+                                }
+                                Toast.makeText(context, "naam aangepast!", Toast.LENGTH_LONG)
+                            } else {
+                                Toast.makeText(context, "Geen gebruiker gevonden!", Toast.LENGTH_LONG)
+                            }
+
                         }
                 },
             ) {
