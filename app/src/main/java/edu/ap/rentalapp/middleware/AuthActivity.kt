@@ -1,6 +1,5 @@
 package edu.ap.rentalapp.middleware
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -25,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
-
 import com.google.firebase.auth.FirebaseAuth
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.screens.SignInActivity
@@ -38,7 +36,6 @@ abstract class AuthActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
         checkAuthentication()
-
         setContent {
             Scaffold(
                 topBar = {

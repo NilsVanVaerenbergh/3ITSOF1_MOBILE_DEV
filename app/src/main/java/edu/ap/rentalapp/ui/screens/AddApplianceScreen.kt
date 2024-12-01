@@ -64,6 +64,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import edu.ap.rentalapp.components.OSM
+import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.ui.theme.Blue
 import java.util.Locale
 
@@ -72,6 +73,10 @@ import java.util.Locale
 fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostController) {
 
     val paddingInBetween = 10.dp
+    val context = LocalContext.current
+
+    val authenticationManager = remember { AuthenticationManager(context) }
+    val user = authenticationManager.auth.currentUser
 
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -87,7 +92,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var longitude by remember { mutableDoubleStateOf(0.0) }
     var zoomLevel by remember { mutableDoubleStateOf(18.0) }
 
-    val context = LocalContext.current
+
 
     Column(
         modifier = modifier
@@ -251,6 +256,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                 address = address,
                                 longitude = longitude,
                                 latitude = latitude,
+                                userId = user?.uid.toString(),
                                 onSuccess = {
                                     loading = false
                                     Log.d("firebase", "Item added successfully!")
@@ -296,7 +302,8 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
 
             item {
-                OutlinedButton(onClick = { navController.navigate("myRentals") }) {
+                OutlinedButton(onClick = { navController.navigate("myRentals") }
+                ) {
                     Text("To rentals")
                 }
             }
@@ -393,6 +400,7 @@ fun uploadApplianceToFirebase(
     address: String,
     longitude: Double,
     latitude: Double,
+    userId: String,
     onSuccess: () -> Unit,
     onError: (Exception) -> Unit,
     navController: NavHostController
@@ -429,7 +437,8 @@ fun uploadApplianceToFirebase(
                 "category" to category,
                 "address" to address,
                 "latitude" to latitude,
-                "longitude" to longitude
+                "longitude" to longitude,
+                "userId" to userId
 
             )
 

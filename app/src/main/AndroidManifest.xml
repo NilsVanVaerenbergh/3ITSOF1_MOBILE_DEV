@@ -49,6 +49,9 @@
         <activity
             android:name=".screens.UserProfileActivity"
             android:theme="@style/Theme.RentalApp" />
+        <activity
+            android:name=".ui.screens.myRentals.MyRentalsActivity"
+            android:theme="@style/Theme.RentalApp" />
     </application>
 
 </manifest>
