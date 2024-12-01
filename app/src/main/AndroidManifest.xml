@@ -22,12 +22,12 @@
         android:theme="@style/Theme.RentalApp"
         tools:targetApi="31">
         <activity
-            android:name=".screens.EditUserNameActivity"
+            android:name=".ui.screens.EditUserNameActivity"
             android:exported="false"
             android:label="@string/title_activity_edit_user_name"
             android:theme="@style/Theme.RentalApp" />
         <activity
-            android:name=".screens.EditLocationActivity"
+            android:name=".ui.screens.EditLocationActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
@@ -41,13 +41,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".screens.SignInActivity"
+            android:name=".ui.screens.SignInActivity"
             android:theme="@style/Theme.RentalApp" />
         <activity
-            android:name=".screens.SignUpActivity"
+            android:name=".ui.screens.SignUpActivity"
             android:theme="@style/Theme.RentalApp" />
         <activity
-            android:name=".screens.UserProfileActivity"
+            android:name=".ui.screens.UserProfileActivity"
             android:theme="@style/Theme.RentalApp" />
         <activity
             android:name=".ui.screens.myRentals.MyRentalsActivity"

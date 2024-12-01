@@ -107,5 +107,6 @@ dependencies {
     implementation ("com.beust:klaxon:5.4")
     implementation ("com.google.accompanist:accompanist-permissions:0.32.0")
     implementation ("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation ("com.google.accompanist:accompanist-swiperefresh:0.28.0")
 
 }
