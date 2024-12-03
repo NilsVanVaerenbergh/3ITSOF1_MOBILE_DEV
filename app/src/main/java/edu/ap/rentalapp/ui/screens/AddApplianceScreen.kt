@@ -62,7 +62,6 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import edu.ap.rentalapp.components.OSM
 import edu.ap.rentalapp.extensions.AuthenticationManager
-import edu.ap.rentalapp.ui.SharedTopAppBar
 import edu.ap.rentalapp.ui.theme.Blue
 import java.util.Locale
 
@@ -91,15 +90,15 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var zoomLevel by remember { mutableDoubleStateOf(18.0) }
 
 
-    Column {
-        SharedTopAppBar(
-            title = "Add appliance",
-            navController = navController
-        )
+    Column(
+        modifier = modifier
+            .padding(15.dp)
+            .fillMaxSize()
+    ) {
+
         LazyColumn(
             modifier = modifier
-                .padding(15.dp)
-                .fillMaxSize()
+                .fillMaxWidth()
                 .weight(1f)
         ) {
             item {
@@ -440,7 +439,7 @@ fun uploadApplianceToFirebase(
         .addOnFailureListener { exception -> onError(exception) }
 
     Tasks.whenAllComplete(applianceUpload)
-        .addOnSuccessListener{
+        .addOnSuccessListener {
             navController.navigate("myRentals")
         }
         .addOnFailureListener { exception -> onError(exception) }

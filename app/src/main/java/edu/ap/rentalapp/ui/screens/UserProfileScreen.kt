@@ -32,7 +32,6 @@ import com.google.gson.Gson
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
-import edu.ap.rentalapp.ui.SharedTopAppBar
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -55,10 +54,6 @@ fun UserProfileScreen(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)// Ensure proper padding for visibility
     ) {
-        SharedTopAppBar(
-            title = "Jouw profiel",
-            navController = navController
-        )
 
         if (user == null) {
             Text(

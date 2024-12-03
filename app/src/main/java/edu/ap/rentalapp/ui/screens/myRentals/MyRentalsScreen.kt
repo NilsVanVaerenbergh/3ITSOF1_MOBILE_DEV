@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import edu.ap.rentalapp.ui.SharedTopAppBar
 import edu.ap.rentalapp.ui.theme.Purple40
 
 @Composable
@@ -64,10 +63,6 @@ fun MyRentalsScreen(
 
 
     Column {
-        SharedTopAppBar(
-            title = "My rentals",
-            navController = navController
-        )
 
         if (isLoading.value) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))

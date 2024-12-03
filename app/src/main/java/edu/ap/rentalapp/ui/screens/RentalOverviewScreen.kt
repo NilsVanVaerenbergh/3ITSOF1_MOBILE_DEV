@@ -56,7 +56,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import edu.ap.rentalapp.entities.Appliance
 import edu.ap.rentalapp.extensions.RentalService
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
-import edu.ap.rentalapp.ui.SharedTopAppBar
+import edu.ap.rentalapp.ui.shared.SharedBottomBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,10 +85,7 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     // Swipe refresh state to handle pull-to-refresh
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = loading.value)
     Column {
-        SharedTopAppBar(
-            title = "Home",
-            navController = navController
-        )
+
         OutlinedTextField(
             value = search,
             onValueChange = { text ->
@@ -188,12 +185,14 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                                 }
                             }
                         }
+                        SharedBottomBar(navController = navController)
 
 
                     }
                 }
             }
         }
+
     }
 }
 

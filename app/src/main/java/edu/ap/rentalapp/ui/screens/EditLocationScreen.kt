@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
-import edu.ap.rentalapp.ui.SharedTopAppBar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -44,46 +43,43 @@ fun EditLocationScreen(
     var address by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
-    Column {
-        SharedTopAppBar(
-            title = "Wijzig locatie",
-            navController = navController
+
+    Column(
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Address input field
+        TextField(
+            value = address,
+            onValueChange = { address = it },
+            label = { Text("Locatie zetten op address") },
+            modifier = Modifier.fillMaxWidth()
         )
-        Column(
-            modifier = modifier
-                .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Address input field
-            TextField(
-                value = address,
-                onValueChange = { address = it },
-                label = { Text("Locatie zetten op address") },
-                modifier = Modifier.fillMaxWidth()
-            )
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            // Submit button
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        fetchCoordinatesAndSave(address, context)
-                    }
+        // Submit button
+        Button(
+            onClick = {
+                coroutineScope.launch {
+                    fetchCoordinatesAndSave(address, context)
                 }
-            ) {
-                Text("Save Location")
             }
+        ) {
+            Text("Save Location")
         }
     }
+
 }
 
 fun fetchCoordinatesFlow(address: String): Flow<Location?> {
     val client = OkHttpClient()
     val formattedAddress = address.replace(" ", "+") // Format address for URL
-    val url = "http://nominatim.openstreetmap.org/search?q=$formattedAddress&format=json&polygon=1&addressdetails=1"
+    val url =
+        "http://nominatim.openstreetmap.org/search?q=$formattedAddress&format=json&polygon=1&addressdetails=1"
     val request = Request.Builder().url(url).build()
 
     return flow {
@@ -131,9 +127,14 @@ suspend fun fetchCoordinatesAndSave(address: String, context: Context) {
             // Collect result from the user service flow
             resultFlow.collect { result ->
                 if (result.isSuccess) {
-                    Toast.makeText(context, "Location saved successfully", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Location saved successfully", Toast.LENGTH_SHORT)
+                        .show()
                 } else {
-                    Toast.makeText(context, "Error saving location: ${result.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        "Error saving location: ${result.exceptionOrNull()?.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         } else {

@@ -1,4 +1,4 @@
-package edu.ap.rentalapp.ui
+package edu.ap.rentalapp.ui.shared
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
@@ -19,6 +19,7 @@ import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import com.google.firebase.auth.FirebaseAuth
+import edu.ap.rentalapp.ui.theme.Purple40
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +45,7 @@ fun SharedTopAppBar(title: String, navController: NavController) {
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.White
+            containerColor = Purple40
         )
     )
 }
