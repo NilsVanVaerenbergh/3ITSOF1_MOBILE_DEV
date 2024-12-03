@@ -58,7 +58,7 @@ dependencies {
     // Load images from URI
     implementation (libs.coil.compose)
 
-    implementation ("androidx.navigation:navigation-compose:2.8.4")
+    implementation (libs.androidx.navigation.compose)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -100,6 +100,10 @@ dependencies {
     implementation ("androidx.compose.material:material-icons-extended:1.5.2")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("io.coil-kt:coil-svg:2.4.0")
+
+    //Pager
+    implementation ("com.google.accompanist:accompanist-pager:0.28.0")
+    implementation ("com.google.accompanist:accompanist-pager-indicators:0.28.0")
 
     //MAP
     implementation ("org.osmdroid:osmdroid-android:6.1.14")

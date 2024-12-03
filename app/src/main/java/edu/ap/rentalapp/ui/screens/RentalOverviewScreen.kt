@@ -1,6 +1,7 @@
 package edu.ap.rentalapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -69,18 +70,14 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     var search by remember { mutableStateOf("") }
     val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
 
-    // Get the CoroutineScope for launching coroutines
     val coroutineScope = rememberCoroutineScope()
 
-    // Fetch rentals when the composable is launched
     LaunchedEffect(Unit) {
-        // Launch a coroutine inside LaunchedEffect
         coroutineScope.launch {
             fetchRentals(rentalService, rentalList, loading)
         }
     }
 
-    // Swipe refresh state to handle pull-to-refresh
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = loading.value)
     Column {
         OutlinedTextField(
@@ -139,25 +136,21 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
         SwipeRefresh(
             state = swipeRefreshState,
             onRefresh = {
-                // Trigger the refresh when pulled down
                 coroutineScope.launch {
                     fetchRentals(rentalService, rentalList, loading)
                 }
             }
         ) {
             Column(modifier = modifier.fillMaxWidth()) {
-                // Loading indicator
                 if (loading.value) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                 } else {
-                    // If no rentals are available, show a message
                     if (rentalList.value.isEmpty()) {
                         Text(
                             text = "No rentals available",
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                     } else {
-                        // Filter rentals based on search and category
                         val filteredRentals = remember(rentalList.value, search, selectedItem.value) {
                             rentalList.value.filter { product ->
                                 product.name.lowercase().contains(search.lowercase()) &&
@@ -166,10 +159,9 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                             }
                         }
 
-                        // Show the rental list
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
                             items(filteredRentals) { appliance ->
-                                CustomCard(appliance)
+                                CustomCard(appliance, navController)
                             }
                         }
                     }
@@ -179,7 +171,6 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     }
 }
 
-// Function to fetch rentals from the service and update state
 private suspend fun fetchRentals(
     rentalService: RentalService,
     rentalList: MutableState<List<Appliance>>,
@@ -187,22 +178,22 @@ private suspend fun fetchRentals(
 ) {
     loading.value = true
     try {
-        // Fetch rentals from the service
         val rentals = rentalService.getListOfRentals()
         rentalList.value = rentals
     } catch (e: Exception) {
-        // Handle exceptions if necessary
         rentalList.value = emptyList()
     } finally {
         loading.value = false
     }
 }
 @Composable
-fun CustomCard(appliance: Appliance) {
+fun CustomCard(appliance: Appliance, navController: NavHostController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(16.dp).clickable {
+                navController.navigate("rental/${appliance.id}")
+            },
         shape = RoundedCornerShape(8.dp)
     ) {
         Row(

@@ -23,4 +23,17 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
         }
         return appliances
     }
+    suspend fun getRentalById(id: String): Appliance? {
+        return try {
+            val documentSnapshot = firestore.collection("myAppliances").document(id).get().await()
+            if (documentSnapshot.exists()) {
+                documentSnapshot.toObject(Appliance::class.java)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 }
