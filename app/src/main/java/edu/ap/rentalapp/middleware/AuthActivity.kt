@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
-
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import edu.ap.rentalapp.R
@@ -38,7 +37,6 @@ abstract class AuthActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
         checkAuthentication()
-
         setContent {
             Scaffold(
                 topBar = {
@@ -74,7 +72,7 @@ abstract class AuthActivity : ComponentActivity() {
                         .clickable { onProfileClick() }
                 )
             },
-            colors = TopAppBarDefaults.smallTopAppBarColors(
+            colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Color.White
             )
         )
