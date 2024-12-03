@@ -16,8 +16,10 @@ import androidx.navigation.compose.rememberNavController
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.middleware.AuthActivity
 import edu.ap.rentalapp.ui.screens.AddApplianceScreen
-import edu.ap.rentalapp.ui.screens.MyRentalsScreen
+//import edu.ap.rentalapp.ui.screens.MyRentalsScreen
 import edu.ap.rentalapp.ui.screens.rentalOverViewScreen
+import edu.ap.rentalapp.ui.screens.rentals.RentRentalScreen
+import edu.ap.rentalapp.ui.screens.rentals.RentalScreen
 
 class MainActivity : AuthActivity() {
     override fun getTopBarTitle(): String = "Welkom"
@@ -46,21 +48,31 @@ class MainActivity : AuthActivity() {
                                 navController = navController
                             )
                         }
-                        composable(
-                            route = "myRentals"
-                        ) {
-                            MyRentalsActivity.MyRentalTest(
-                                viewModel = MyRentalsViewModel(),
-                                navController = navController
-                            )
-//                            MyRentalsScreen(
-//                                modifier = Modifier.padding(innerPadding),
+                        composable("rental/{id}") { backStackEntry ->
+                            val id = backStackEntry.arguments?.getString("id") ?: ""
+                            RentalScreen(modifier = Modifier.padding(innerPadding),
+                                navController = navController, id = id)
+                        }
+                        composable("rental/{id}/rent") { backStackEntry ->
+                            val id = backStackEntry.arguments?.getString("id") ?: ""
+                            RentRentalScreen(modifier = Modifier.padding(innerPadding),
+                                navController = navController, id = id)
+                        }
+//                        composable(
+//                            route = "myRentals"
+//                        ) {
+//                            MyRentalsActivity.MyRentalTest(
+//                                viewModel = MyRentalsViewModel(),
 //                                navController = navController
 //                            )
-                        }
-                        composable(route = "test"){
-                            Test.TestScreen()
-                        }
+////                            MyRentalsScreen(
+////                                modifier = Modifier.padding(innerPadding),
+////                                navController = navController
+////                            )
+//                        }
+//                        composable(route = "test"){
+//                            Test.TestScreen()
+//                        }
                     }
                 }
     }

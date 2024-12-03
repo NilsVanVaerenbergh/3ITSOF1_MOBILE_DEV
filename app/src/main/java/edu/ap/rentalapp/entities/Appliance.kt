@@ -1,6 +1,9 @@
 package edu.ap.rentalapp.entities
 
+import com.google.firebase.firestore.DocumentId
+
 data class Appliance(
+    @DocumentId var id: String = "",
     var address: String = "",
     var category: String = "",
     var description: String = "",
@@ -9,5 +12,5 @@ data class Appliance(
     var longitude: Double = 0.0,
     var name: String = ""
 ) {
-    constructor() : this("", "", "", emptyList(), 0.0, 0.0, "")
+    constructor() : this("", "", "", "",emptyList(), 0.0, 0.0, "")
 }

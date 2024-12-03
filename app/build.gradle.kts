@@ -101,6 +101,10 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("io.coil-kt:coil-svg:2.4.0")
 
+    //Pager
+    implementation ("com.google.accompanist:accompanist-pager:0.28.0")
+    implementation ("com.google.accompanist:accompanist-pager-indicators:0.28.0")
+
     //MAP
     implementation ("org.osmdroid:osmdroid-android:6.1.14")
     implementation ("com.google.android.gms:play-services-location:21.0.1")
