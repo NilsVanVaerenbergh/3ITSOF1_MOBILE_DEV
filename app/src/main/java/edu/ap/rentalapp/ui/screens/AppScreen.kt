@@ -13,18 +13,15 @@ import androidx.navigation.navArgument
 import com.google.gson.Gson
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
-import edu.ap.rentalapp.ui.screens.myRentals.MyRentalsActivity
+import edu.ap.rentalapp.ui.screens.myRentals.MyRentalsScreen
 
 @Composable
 fun AppScreen(
     modifier: Modifier = Modifier,
-    //authViewModel: AuthViewModel = viewModel()
 ) {
 
     val context = LocalContext.current
-    //val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
     val authenticationManager = remember { AuthenticationManager(context) }
-    //val user = authenticationManager.getCurrentUser()
     val isAuthenticated = remember { authenticationManager.isAuthenticated() }
     
     val navController = rememberNavController()
@@ -105,7 +102,7 @@ fun AppScreen(
             )
         }
         composable("myRentals") {
-            MyRentalsActivity.MyRentalTest(
+            MyRentalsScreen(
                 navController = navController
             )
         }
