@@ -22,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -46,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import edu.ap.rentalapp.ui.SharedTopAppBar
 import edu.ap.rentalapp.ui.theme.Purple40
 
 @Composable
@@ -64,14 +64,10 @@ fun MyRentalsScreen(
 
 
     Column {
-        Text(
-            text = "My rentals",
-            fontWeight = FontWeight.Bold,
-            fontSize = 36.sp,
-            modifier = modifier
-                .fillMaxWidth()
+        SharedTopAppBar(
+            title = "My rentals",
+            navController = navController
         )
-        HorizontalDivider()
 
         if (isLoading.value) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))

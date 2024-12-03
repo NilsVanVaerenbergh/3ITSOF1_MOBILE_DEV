@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
+import edu.ap.rentalapp.ui.SharedTopAppBar
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -43,32 +44,38 @@ fun EditLocationScreen(
     var address by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
-    Column(
-        modifier = modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Address input field
-        TextField(
-            value = address,
-            onValueChange = { address = it },
-            label = { Text("Locatie zetten op address") },
-            modifier = Modifier.fillMaxWidth()
+    Column {
+        SharedTopAppBar(
+            title = "Wijzig locatie",
+            navController = navController
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Submit button
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    fetchCoordinatesAndSave(address, context)
-                }
-            }
+        Column(
+            modifier = modifier
+                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Save Location")
+            // Address input field
+            TextField(
+                value = address,
+                onValueChange = { address = it },
+                label = { Text("Locatie zetten op address") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Submit button
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        fetchCoordinatesAndSave(address, context)
+                    }
+                }
+            ) {
+                Text("Save Location")
+            }
         }
     }
 }

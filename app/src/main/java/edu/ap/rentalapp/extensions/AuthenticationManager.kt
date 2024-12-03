@@ -1,12 +1,10 @@
 package edu.ap.rentalapp.extensions
 
 import android.content.Context
-import android.content.Intent
 import android.location.Location
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
-import edu.ap.rentalapp.MainActivity
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import kotlinx.coroutines.CoroutineScope
@@ -88,7 +86,6 @@ class AuthenticationManager(private val context: Context) {
 
     fun signOut() {
         auth.signOut()
-        this.context.startActivity(Intent(this.context, MainActivity::class.java))
     }
 
     fun getCurrentUser(): FirebaseUser? {

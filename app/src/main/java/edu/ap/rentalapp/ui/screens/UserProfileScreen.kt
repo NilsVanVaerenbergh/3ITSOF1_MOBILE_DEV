@@ -32,6 +32,7 @@ import com.google.gson.Gson
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
+import edu.ap.rentalapp.ui.SharedTopAppBar
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -50,21 +51,27 @@ fun UserProfileScreen(
     var userData by remember { mutableStateOf<User?>(null) }
 
     val userId = user?.uid.toString()
-    Column (modifier = modifier.fillMaxWidth(),
+    Column(
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)// Ensure proper padding for visibility
     ) {
+        SharedTopAppBar(
+            title = "Jouw profiel",
+            navController = navController
+        )
 
-        if(user == null) {
+        if (user == null) {
             Text(
                 text = "Geen gebruiker gevonden...",
             )
         } else {
-            Log.d("FIRESTORE", "uid:" + userId)
+            Log.d("FIRESTORE", "uid:$userId")
             LaunchedEffect(userId) {
                 isLoading = true
                 userService.getUserByUserId(userId = userId).onEach { result ->
                     if (result.isFailure) {
-                        Toast.makeText(context, "Kon geen gegevens ophalen", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Kon geen gegevens ophalen", Toast.LENGTH_LONG)
+                            .show()
                         isLoading = false
                     } else if (result.isSuccess) {
                         val document = result.getOrNull()
@@ -92,10 +99,13 @@ fun UserProfileScreen(
                     // Display a loading indicator
                     CircularProgressIndicator()
                 }
+
                 userData != null -> {
                     // Display user data UI
                     Row(
-                        modifier = modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.Bottom
 
@@ -112,7 +122,9 @@ fun UserProfileScreen(
                         }
                     }
                     Row(
-                        modifier = modifier.fillMaxWidth().clickable { editUsername(navController, userData!!) },
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .clickable { editUsername(navController, userData!!) },
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.Bottom
 
@@ -135,7 +147,9 @@ fun UserProfileScreen(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
-                        modifier = modifier.fillMaxWidth().clickable { editLocation(navController, userData!!) },
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .clickable { editLocation(navController, userData!!) },
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.Bottom
                     ) {
@@ -171,8 +185,10 @@ fun UserProfileScreen(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Row (
-            modifier = modifier.fillMaxWidth().clickable { backToHome(navController) },
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .clickable { backToHome(navController) },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
 
@@ -185,8 +201,17 @@ fun UserProfileScreen(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Row (
-            modifier = modifier.fillMaxWidth().clickable { authenticationManager.signOut() },
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .clickable {
+                    authenticationManager.signOut()
+                    navController.navigate("signIn"){
+                        // So you can't backtrack back to the profile page/ app (which gives you unauthenticated access, user == null!!!)
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
 
@@ -204,10 +229,12 @@ fun UserProfileScreen(
 fun backToHome(navController: NavController) {
     navController.navigate("home")
 }
+
 fun editLocation(navController: NavController, user: User) {
-    val userData = Uri.encode(Gson().toJson(user))
-    navController.navigate("editUserName/${userData}")
+    //val userData = Uri.encode(Gson().toJson(user))
+    navController.navigate("editLocation")
 }
+
 fun editUsername(navController: NavController, user: User) {
     val userData = Uri.encode(Gson().toJson(user))
     navController.navigate("editUserName/${userData}")

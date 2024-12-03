@@ -3,7 +3,6 @@ package edu.ap.rentalapp.ui.screens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -16,9 +15,7 @@ import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.ui.screens.myRentals.MyRentalsScreen
 
 @Composable
-fun AppScreen(
-    modifier: Modifier = Modifier,
-) {
+fun AppScreen() {
 
     val context = LocalContext.current
     val authenticationManager = remember { AuthenticationManager(context) }
@@ -90,7 +87,7 @@ fun AppScreen(
                 navController = navController
             )
         }
-        composable("home") {
+        composable(route = "home") {
             RentalOverViewScreen(
                 //authViewModel = authViewModel, // Pass the ViewModel to log out
                 navController = navController
