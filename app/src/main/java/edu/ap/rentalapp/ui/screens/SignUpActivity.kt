@@ -48,14 +48,14 @@ class SignUpActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             RentalAppTheme {
-                SignUpScreen()
+                SignUpScreen1()
             }
         }
     }
 }
 
 @Composable
-fun SignUpScreen(
+fun SignUpScreen1(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -141,6 +141,6 @@ fun SignUpScreen(
 @Composable
 private fun SignInActivityPreview() {
     RentalAppTheme {
-        SignUpScreen()
+        SignUpScreen1()
     }
 }

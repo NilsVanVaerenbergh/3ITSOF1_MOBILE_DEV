@@ -27,6 +27,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -55,11 +56,12 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import edu.ap.rentalapp.entities.Appliance
 import edu.ap.rentalapp.extensions.RentalService
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
+import edu.ap.rentalapp.ui.SharedTopAppBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController) {
     val context = LocalContext.current
     val rentalService = RentalServiceSingleton.getInstance(context)
     val rentalList = remember { mutableStateOf<List<Appliance>>(emptyList()) }
@@ -83,6 +85,10 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     // Swipe refresh state to handle pull-to-refresh
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = loading.value)
     Column {
+        SharedTopAppBar(
+            title = "Home",
+            navController = navController
+        )
         OutlinedTextField(
             value = search,
             onValueChange = { text ->
@@ -171,7 +177,19 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                             items(filteredRentals) { appliance ->
                                 CustomCard(appliance)
                             }
+
+                            item {
+                                OutlinedButton(
+                                    onClick = {
+                                        navController.navigate("addAppliance")
+                                    }
+                                ) {
+                                    Text("Add")
+                                }
+                            }
                         }
+
+
                     }
                 }
             }

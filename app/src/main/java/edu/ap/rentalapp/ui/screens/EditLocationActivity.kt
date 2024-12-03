@@ -117,7 +117,7 @@ class EditLocationActivity : AuthActivity() {
         fetchCoordinatesFlow(address).collect { location ->
             if (location != null && (userId != null && email != null)) {
                 // Save the location to the user service
-                val resultFlow = userService.saveUserData(userId, "", email, location = location)
+                val resultFlow = userService.saveUserData(userId, email, location = location)
 
                 // Collect result from the user service flow
                 resultFlow.collect { result ->

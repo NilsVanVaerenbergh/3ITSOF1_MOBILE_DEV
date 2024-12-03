@@ -1,9 +1,6 @@
 package edu.ap.rentalapp.ui.screens
-import android.content.Intent
-import android.os.Bundle
+
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -33,33 +30,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import edu.ap.rentalapp.MainActivity
+import androidx.navigation.NavController
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.extensions.AuthResponse
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-class SignInActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-//            RentalAppTheme {
-//                SignInScreen1 {
-//                    navController.navigate("home") {
-//                        popUpTo("login") { inclusive = true }
-//                    }
-//                }
-//            }
-        }
-    }
-}
-
 @Composable
-fun SignInScreen1() {
+fun SignInScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    onLoginSuccess: () -> Unit
+) {
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") } // Loading state to prevent multiple sign-in attempts
-    
+
     val context = LocalContext.current
     val authenticationManager = remember { AuthenticationManager(context) }
     val coroutineScope = rememberCoroutineScope()
@@ -90,15 +77,15 @@ fun SignInScreen1() {
             OutlinedTextField(
                 value = email,
                 onValueChange = {newEmail -> email = newEmail},
-                placeholder = { Text(text="Email")},
-                leadingIcon = { Icon(imageVector = Icons.Outlined.Email, contentDescription = "email icon")},
+                placeholder = { Text(text="Email") },
+                leadingIcon = { Icon(imageVector = Icons.Outlined.Email, contentDescription = "email icon") },
             )
             Spacer(modifier = Modifier.height(9.dp))
             OutlinedTextField(
                 value = password,
                 onValueChange = {newPassword -> password = newPassword},
-                placeholder = { Text(text="Wachtwoord")},
-                leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = "lock icon")},
+                placeholder = { Text(text="Wachtwoord") },
+                leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = "lock icon") },
                 visualTransformation = PasswordVisualTransformation()
             )
             Spacer(modifier = Modifier.height(9.dp))
@@ -110,13 +97,13 @@ fun SignInScreen1() {
                         authenticationManager.signInWithEmail(email,password)
                             .onEach { response ->
                                 if(response is AuthResponse.Succes) {
-                                    context.startActivity(Intent(context, MainActivity::class.java))
+                                    onLoginSuccess()
                                 }
                                 if(response is AuthResponse.Error) {
                                     Toast.makeText(context, response.message, Toast.LENGTH_LONG).show()
                                 }
                             }.launchIn(coroutineScope) }
-                    },
+                },
             ) {
                 Text(text = "login")
             }
@@ -127,7 +114,7 @@ fun SignInScreen1() {
             Spacer(modifier = Modifier.height(9.dp))
             Button(
                 onClick = {
-                    context.startActivity(Intent(context, SignUpActivity::class.java))
+                    navController.navigate("signUp")
                 },
             ) {
                 Text(text = "Registreren")
@@ -135,22 +122,5 @@ fun SignInScreen1() {
 
         }
     }
+
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//private fun SignInActivityPreview() {
-//    RentalAppTheme {
-//        SignInScreen({
-//            navController.navigate("home") {
-//                popUpTo("login") { inclusive = true }
-//            }
-//        }) {
-//            navController.navigate("home") {
-//                popUpTo("login") { inclusive = true }
-//            }
-//        }
-//    }
-//}
-
-
