@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,7 +42,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun RentalScreen(modifier: Modifier = Modifier, navController: NavHostController, id : String) {
+fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostController, id : String) {
 
     val paddingInBetween = 10.dp
     val context = LocalContext.current
@@ -157,6 +158,14 @@ fun RentalScreen(modifier: Modifier = Modifier, navController: NavHostController
                 text = "Latitude: ${appliance!!.latitude}, Longitude: ${appliance!!.longitude}",
                 style = MaterialTheme.typography.bodyMedium
             )
+
+            Button(
+                onClick = {
+                    navController.navigate("rental/${id}/rent")
+                }
+            ) {
+                Text(text = "Rent")
+            }
         }
     }
 }

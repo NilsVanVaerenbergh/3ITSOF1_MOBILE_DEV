@@ -113,4 +113,6 @@ dependencies {
     implementation ("com.squareup.okhttp3:okhttp:4.11.0")
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.28.0")
 
+    // DATEPICKER
+    implementation ("com.google.android.material:material:1.7.0")
 }

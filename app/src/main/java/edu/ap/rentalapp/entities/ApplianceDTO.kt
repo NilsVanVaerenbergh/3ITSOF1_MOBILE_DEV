@@ -3,7 +3,7 @@ package edu.ap.rentalapp.entities
 import com.google.firebase.firestore.DocumentId
 import java.util.Date
 
-data class Appliance(
+data class ApplianceDTO(
     @DocumentId var id: String = "",
     var address: String = "",
     var category: String = "",
@@ -12,6 +12,7 @@ data class Appliance(
     var latitude: Double = 0.0,
     var longitude: Double = 0.0,
     var name: String = "",
+    var rentalDates: List<ApplianceRentalDate> = emptyList()
 ) {
-    constructor() : this("", "", "", "",emptyList(), 0.0, 0.0, "")
+    constructor() : this("", "", "", "",emptyList(), 0.0, 0.0, "", emptyList())
 }

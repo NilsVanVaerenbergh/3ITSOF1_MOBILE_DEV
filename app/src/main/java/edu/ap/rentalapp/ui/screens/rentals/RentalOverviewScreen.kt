@@ -1,4 +1,4 @@
-package edu.ap.rentalapp.ui.screens
+package edu.ap.rentalapp.ui.screens.rentals
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,7 +53,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import edu.ap.rentalapp.entities.Appliance
+import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.extensions.RentalService
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
 import kotlinx.coroutines.launch
@@ -63,7 +63,7 @@ import kotlinx.coroutines.launch
 fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController) {
     val context = LocalContext.current
     val rentalService = RentalServiceSingleton.getInstance(context)
-    val rentalList = remember { mutableStateOf<List<Appliance>>(emptyList()) }
+    val rentalList = remember { mutableStateOf<List<ApplianceDTO>>(emptyList()) }
     val loading = remember { mutableStateOf(true) }
     val selectedItem = remember { mutableStateOf<String?>(null) }
     val dropdownExpanded = remember { mutableStateOf(false) }
@@ -173,13 +173,13 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
 
 private suspend fun fetchRentals(
     rentalService: RentalService,
-    rentalList: MutableState<List<Appliance>>,
+    rentalList: MutableState<List<ApplianceDTO>>,
     loading: MutableState<Boolean>
 ) {
     loading.value = true
     try {
-        val rentals = rentalService.getListOfRentals()
-        rentalList.value = rentals
+        val rentals = rentalService.getListOfRentalsWithDates()
+        rentalList.value = rentals.filter { a -> a.rentalDates.isEmpty() }
     } catch (e: Exception) {
         rentalList.value = emptyList()
     } finally {
@@ -187,7 +187,7 @@ private suspend fun fetchRentals(
     }
 }
 @Composable
-fun CustomCard(appliance: Appliance, navController: NavHostController) {
+fun CustomCard(appliance: ApplianceDTO, navController: NavHostController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

@@ -17,12 +17,12 @@ import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.middleware.AuthActivity
 import edu.ap.rentalapp.ui.screens.AddApplianceScreen
 //import edu.ap.rentalapp.ui.screens.MyRentalsScreen
-import edu.ap.rentalapp.ui.screens.rentalOverViewScreen
-import edu.ap.rentalapp.ui.screens.rentals.RentRentalScreen
-import edu.ap.rentalapp.ui.screens.rentals.RentalScreen
+import edu.ap.rentalapp.ui.screens.rentals.rentalOverViewScreen
+import edu.ap.rentalapp.ui.screens.rentals.ApplianceScreen
+import edu.ap.rentalapp.ui.screens.rentals.RentApplianceScreen
 
 class MainActivity : AuthActivity() {
-    override fun getTopBarTitle(): String = "Welkom"
+    override fun getTopBarTitle(): String = "Welcome"
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun ScreenContent(modifier: Modifier, context: Context) {
@@ -50,12 +50,12 @@ class MainActivity : AuthActivity() {
                         }
                         composable("rental/{id}") { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id") ?: ""
-                            RentalScreen(modifier = Modifier.padding(innerPadding),
+                            ApplianceScreen(modifier = Modifier.padding(innerPadding),
                                 navController = navController, id = id)
                         }
                         composable("rental/{id}/rent") { backStackEntry ->
                             val id = backStackEntry.arguments?.getString("id") ?: ""
-                            RentRentalScreen(modifier = Modifier.padding(innerPadding),
+                            RentApplianceScreen(modifier = Modifier.padding(innerPadding),
                                 navController = navController, id = id)
                         }
 //                        composable(
