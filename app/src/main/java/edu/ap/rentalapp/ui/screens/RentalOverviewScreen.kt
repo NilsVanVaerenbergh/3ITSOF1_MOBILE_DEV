@@ -1,5 +1,6 @@
 package edu.ap.rentalapp.ui.screens
 
+import android.location.Location
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,8 +72,13 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     var search by remember { mutableStateOf("") }
     val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
 
+    val options = listOf(5.0, 10.0, 20.0)
+    var radiusInKm by remember { mutableStateOf(5.0) } // Default to 5km
+    //val filteredItems = filterItemsByDistance(rentalList, 51.216962, 4.399859, radiusInKm)
+
     // Get the CoroutineScope for launching coroutines
     val coroutineScope = rememberCoroutineScope()
+
 
     // Fetch rentals when the composable is launched
     LaunchedEffect(Unit) {
@@ -193,6 +199,24 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
             }
         }
 
+    }
+}
+
+fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+    val result = FloatArray(1)
+    Location.distanceBetween(lat1, lon1, lat2, lon2, result)
+    return result[0] // Distance in meters
+}
+
+fun filterItemsByDistance(
+    items: List<Appliance>,
+    userLat: Double,
+    userLon: Double,
+    radiusInKm: Double
+): List<Appliance> {
+    return items.filter { item ->
+        val distanceInMeters = calculateDistance(userLat, userLon, item.latitude, item.longitude)
+        distanceInMeters <= radiusInKm * 1000 // Convert km to meters
     }
 }
 

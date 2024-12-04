@@ -24,10 +24,14 @@ fun SharedBottomBar(
     navController: NavController
 ) {
 
-    BottomAppBar {
+    BottomAppBar(
+        //modifier = modifier.clip(BottomNavCurve())
+    )
+    {
         Row(
             modifier = modifier
                 .fillMaxWidth(),
+                //.clip(BottomNavCurve()),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -40,7 +44,10 @@ fun SharedBottomBar(
             IconButton(onClick = {
                 navController.navigate("myReservations")
             }) {
-                Icon(imageVector = Icons.Outlined.BookmarkBorder, contentDescription = "Reservations")
+                Icon(
+                    imageVector = Icons.Outlined.BookmarkBorder,
+                    contentDescription = "Reservations"
+                )
             }
             VerticalDivider()
             IconButton(onClick = {

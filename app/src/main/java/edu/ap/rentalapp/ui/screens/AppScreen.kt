@@ -55,6 +55,13 @@ fun AppScreen() {
             navController.navigate("home") {
                 popUpTo("signIn") { inclusive = true }
             }
+//            RequestLocationPermission( onPermissionGranted = {
+//                getCurrentLocation(context) { location ->
+//                    if (location != null){
+//                        saveUserLocationToFirebase(context, location.latitude, location.longitude)
+//                    }
+//                }
+//            })
         } else {
             navController.navigate("signIn") {
                 popUpTo("home") { inclusive = true }
