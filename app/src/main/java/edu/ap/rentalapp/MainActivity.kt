@@ -24,37 +24,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-//        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    NavHost(navController = navController, startDestination = "addAppliance") {
-//                        composable("addAppliance") {
-//                            AddApplianceScreen(
-//                                modifier = Modifier.padding(
-//                                    innerPadding
-//                                ), navController = navController
-//                            )
-//                        }
-//                        composable(route = "rentalsOverview") {
-//                            RentalOverViewScreen(
-//                                modifier = Modifier.padding(innerPadding),
-//                                navController = navController
-//                            )
-//                        }
-//                        composable(
-//                            route = "myRentals"
-//                        ) {
-//                            MyRentalsActivity.MyRentalTest(
-//                                viewModel = MyRentalsViewModel(),
-//                                navController = navController
-//                            )
-////                            MyRentalsScreen(
-////                                modifier = Modifier.padding(innerPadding),
-////                                navController = navController
-////                            )
-//                        }
-//                        composable(route = "test"){
-//                            Test.TestScreen()
-//                        }
-//                    }
-//                }
-    }
+
+}
 

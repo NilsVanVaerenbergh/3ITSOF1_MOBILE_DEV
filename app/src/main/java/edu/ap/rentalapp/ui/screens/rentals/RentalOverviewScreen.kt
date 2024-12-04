@@ -55,6 +55,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import edu.ap.rentalapp.entities.Appliance
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.extensions.RentalService
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton

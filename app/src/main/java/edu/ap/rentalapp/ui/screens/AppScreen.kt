@@ -22,6 +22,9 @@ import edu.ap.rentalapp.entities.BottomNavItem
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.ui.screens.myRentals.MyRentalsScreen
+import edu.ap.rentalapp.ui.screens.rentals.ApplianceScreen
+import edu.ap.rentalapp.ui.screens.rentals.RentApplianceScreen
+import edu.ap.rentalapp.ui.screens.rentals.RentalOverViewScreen
 import edu.ap.rentalapp.ui.shared.NavigationBottomBar
 import edu.ap.rentalapp.ui.shared.SharedTopAppBar
 
@@ -40,9 +43,11 @@ fun AppScreen() {
         "myRentals" to "My Rentals",
         "profile" to "Profile",
         "editUserName/{user}" to "Edit Username",
-        "editLocation" to "Edit Location"
+        "editLocation" to "Edit Location",
+        "rental/{id}" to "Rent appliance",
+        "rental/{id}/rent" to "Select dates"
     )
-    val showBottomBarRoutes = listOf("home", "myReservations", "myRentals", "profile")//, "editUserName", "editLocation")
+    val showBottomBarRoutes = listOf("home", "myReservations", "myRentals", "profile", "rental/{id}")//, "editUserName", "editLocation")
     val bottomNavItems = listOf(
         BottomNavItem("Home", Icons.Outlined.Home, "home"),
         BottomNavItem("Reservations", Icons.Outlined.BookmarkBorder, "myReservations"),
@@ -162,6 +167,17 @@ fun AppScreen() {
             }
             composable("myReservations") {
                 MyReservationsScreen()
+            }
+
+            composable("rental/{id}") { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id") ?: ""
+                ApplianceScreen(modifier = Modifier.padding(innerPadding),
+                    navController = navController, id = id)
+            }
+            composable("rental/{id}/rent") { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id") ?: ""
+                RentApplianceScreen(modifier = Modifier.padding(innerPadding),
+                    navController = navController, id = id)
             }
         }
     }
