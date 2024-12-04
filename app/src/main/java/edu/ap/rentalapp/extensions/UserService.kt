@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class UserService(private val firestore: FirebaseFirestore = Firebase.firestore, private val context: Context) {
 
-    fun saveUserData(userId: String, username: String, email: String, location: Location): Flow<Result<Unit>> = callbackFlow {
+    fun saveUserData(userId: String, email: String, location: Location): Flow<Result<Unit>> = callbackFlow {
         val username = email.substringBefore("@")
         val user = mapOf(
             "email" to email,

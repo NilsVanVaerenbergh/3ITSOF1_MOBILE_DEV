@@ -27,28 +27,13 @@ class MyRentalsViewModel : ViewModel() {
 
     private var auth: FirebaseAuth = Firebase.auth
 
-    val state = mutableStateOf(emptyList<MyAppliance>())
-    val userId: String = ""
-//    private val _appliances = MutableStateFlow<List<MyAppliance>>(emptyList())
-//    val appliances: StateFlow<List<MyAppliance>> = _appliances
-
-    //    fun getDataForUser(userId: String){
-//        viewModelScope.launch {
-//            _appliances.value = fetchAppliances(userId)
-//        }
-//    }
-//        val context = LocalContext.current
-//        val authenticationManager = remember { AuthenticationManager(context) }
-//        val user = authenticationManager.auth.currentUser
-//        val userId = user?.uid.toString()
-
-
+    val applianceData = mutableStateOf(emptyList<MyAppliance>())
 
     private fun getData() {
         val user = auth.currentUser?.uid.toString()
         Log.d("user", "getData: $user")
         viewModelScope.launch {
-            state.value = fetchAppliances(user)
+            applianceData.value = fetchAppliances(user)
         }
     }
 

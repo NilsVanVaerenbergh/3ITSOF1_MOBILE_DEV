@@ -1,5 +1,6 @@
 package edu.ap.rentalapp.ui.screens.rentals
 
+import android.location.Location
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -56,11 +58,12 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.extensions.RentalService
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
+import edu.ap.rentalapp.ui.shared.SharedBottomBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController) {
     val context = LocalContext.current
     val rentalService = RentalServiceSingleton.getInstance(context)
     val rentalList = remember { mutableStateOf<List<ApplianceDTO>>(emptyList()) }
@@ -70,8 +73,15 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     var search by remember { mutableStateOf("") }
     val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
 
+    val options = listOf(5.0, 10.0, 20.0)
+    var radiusInKm by remember { mutableStateOf(5.0) } // Default to 5km
+    //val filteredItems = filterItemsByDistance(rentalList, 51.216962, 4.399859, radiusInKm)
+
+    // Get the CoroutineScope for launching coroutines
     val coroutineScope = rememberCoroutineScope()
 
+
+    // Fetch rentals when the composable is launched
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             fetchRentals(rentalService, rentalList, loading)
@@ -80,6 +90,7 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
 
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = loading.value)
     Column {
+
         OutlinedTextField(
             value = search,
             onValueChange = { text ->
@@ -163,14 +174,47 @@ fun rentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                             items(filteredRentals) { appliance ->
                                 CustomCard(appliance, navController)
                             }
+
+                            item {
+                                OutlinedButton(
+                                    onClick = {
+                                        navController.navigate("addAppliance")
+                                    }
+                                ) {
+                                    Text("Add")
+                                }
+                            }
                         }
+                        SharedBottomBar(navController = navController)
+
+
                     }
                 }
             }
         }
+
     }
 }
 
+fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+    val result = FloatArray(1)
+    Location.distanceBetween(lat1, lon1, lat2, lon2, result)
+    return result[0] // Distance in meters
+}
+
+fun filterItemsByDistance(
+    items: List<Appliance>,
+    userLat: Double,
+    userLon: Double,
+    radiusInKm: Double
+): List<Appliance> {
+    return items.filter { item ->
+        val distanceInMeters = calculateDistance(userLat, userLon, item.latitude, item.longitude)
+        distanceInMeters <= radiusInKm * 1000 // Convert km to meters
+    }
+}
+
+// Function to fetch rentals from the service and update state
 private suspend fun fetchRentals(
     rentalService: RentalService,
     rentalList: MutableState<List<ApplianceDTO>>,

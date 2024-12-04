@@ -35,7 +35,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
@@ -54,9 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.google.android.gms.tasks.Tasks
@@ -93,21 +90,11 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var zoomLevel by remember { mutableDoubleStateOf(18.0) }
 
 
-
     Column(
         modifier = modifier
             .padding(15.dp)
             .fillMaxSize()
-    )
-    {
-        Text(
-            text = "Add appliance",
-            fontWeight = FontWeight.Bold,
-            fontSize = 36.sp,
-            modifier = modifier
-                .fillMaxWidth()
-        )
-        HorizontalDivider()
+    ) {
 
         LazyColumn(
             modifier = modifier
@@ -452,7 +439,7 @@ fun uploadApplianceToFirebase(
         .addOnFailureListener { exception -> onError(exception) }
 
     Tasks.whenAllComplete(applianceUpload)
-        .addOnSuccessListener{
+        .addOnSuccessListener {
             navController.navigate("myRentals")
         }
         .addOnFailureListener { exception -> onError(exception) }
