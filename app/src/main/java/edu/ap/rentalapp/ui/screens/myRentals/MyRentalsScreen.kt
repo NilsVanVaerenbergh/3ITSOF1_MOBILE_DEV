@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -47,10 +48,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import edu.ap.rentalapp.ui.theme.Purple40
 import kotlinx.coroutines.Dispatchers
@@ -71,10 +74,14 @@ fun MyRentalsScreen(
     val appliances = viewModel.applianceData.value
     //Log.d("data", "MyRentalsScreen: $appliances")
 
-    var expanded by remember { mutableStateOf(false) }
-    var locationFilter by remember { mutableStateOf("Filter Location") }
-    val options = listOf(5.0, 10.0, 20.0, 50.0, 100.0)
-    var radiusInKm by remember { mutableDoubleStateOf(5.0) } // Default to 5km
+    val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
+    var expandedCat by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf("Category") }
+
+    var expandedDistance by remember { mutableStateOf(false) }
+    var selectedDistance by remember { mutableStateOf("Distance") }
+    val options = listOf(1.0, 5.0, 10.0, 50.0, 100.0)
+    var radiusInKm by remember { mutableDoubleStateOf(100.0) } // Default to 5km
     val filteredItems = filterItemsByDistance(appliances, 51.216962, 4.399859, radiusInKm)
 
 
@@ -103,31 +110,97 @@ fun MyRentalsScreen(
             )
 
 
-            Column(
-                modifier = modifier
-                    .padding(vertical = 15.dp)
-                    .fillMaxWidth()
-
+            Row(
+                modifier = modifier,
+                horizontalArrangement = Arrangement.Center
             ) {
-                OutlinedButton(
-                    onClick = { expanded = !expanded },
-                    modifier = modifier.fillMaxWidth()
+                Column(
+                    modifier = modifier
+                        .padding(vertical = 10.dp)
+                        .padding(horizontal = 15.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+
                 ) {
-                    Text(locationFilter)
-                }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = modifier.fillMaxWidth()
-                ) {
-                    for (distance in options) {
+                    OutlinedButton(
+                        onClick = { expandedCat = !expandedCat },
+                        modifier = modifier
+                    ) {
+                        Text(selectedCategory)
+                    }
+                    DropdownMenu(
+                        expanded = expandedCat,
+                        onDismissRequest = { expandedCat = false },
+                        modifier = modifier.fillMaxWidth()
+                    ) {
+                        for (cat in categories) {
+                            DropdownMenuItem(
+                                onClick = {
+                                    selectedCategory = cat
+                                    expandedCat = false
+                                },
+                                text = { Text(cat) }
+                            )
+                        }
                         DropdownMenuItem(
                             onClick = {
-                                radiusInKm = distance
-                                expanded = false
-                                locationFilter = distance.toString()
+                                selectedCategory = "Category"
+                                expandedCat = false
                             },
-                            text = { Text("Within ${distance} km") }
+                            text = {
+                                Row {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Remove"
+                                    )
+                                    Text("Remove filter(s)")
+                                }
+                            }
+                        )
+                    }
+                }
+                Spacer(modifier = modifier)
+                Column(
+                    modifier = modifier
+                        .padding(vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+
+                ) {
+                    OutlinedButton(
+                        onClick = { expandedDistance = !expandedDistance },
+                        modifier = modifier
+                    ) {
+                        Text(if (selectedDistance != "Distance") "< $selectedDistance km" else "Distance")
+                    }
+                    DropdownMenu(
+                        expanded = expandedDistance,
+                        onDismissRequest = { expandedDistance = false },
+                        modifier = modifier.fillMaxWidth()
+                    ) {
+                        for (distance in options) {
+                            DropdownMenuItem(
+                                onClick = {
+                                    radiusInKm = distance
+                                    expandedDistance = false
+                                    selectedDistance = distance.toString()
+                                },
+                                text = { Text("Within $distance km") }
+                            )
+                        }
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedDistance = "Distance"
+                                radiusInKm = 100.0
+                                expandedDistance = false
+                            },
+                            text = {
+                                Row {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Remove"
+                                    )
+                                    Text("Remove filter(s)")
+                                }
+                            }
                         )
                     }
                 }
@@ -212,7 +285,8 @@ suspend fun getAddressFromLatLng(context: Context, latitude: Double, longitude: 
 @SuppressLint("DefaultLocale")
 @Composable
 fun ApplianceItemBox(appliance: MyAppliance, context: Context) {
-    val distance = calculateDistance(51.216962, 4.399859, appliance.latitude, appliance.longitude) / 1000
+    val distance =
+        calculateDistance(51.216962, 4.399859, appliance.latitude, appliance.longitude) / 1000
     var address by remember { mutableStateOf("loading...") }
 
     LaunchedEffect(appliance) {
@@ -261,7 +335,7 @@ fun ApplianceItemBox(appliance: MyAppliance, context: Context) {
             Spacer(modifier = Modifier.width(16.dp)) // Space between image and text
 
             // Text content
-            Row{
+            Row {
                 Column(
                     verticalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier.weight(1f)
@@ -280,11 +354,22 @@ fun ApplianceItemBox(appliance: MyAppliance, context: Context) {
                             .padding(2.dp)
                     )
                 }
-                Column{
+                Column {
                     Text("${String.format(" % .2f", distance)} km")
                     Text(address)
                 }
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun Show(modifier: Modifier = Modifier) {
+    val navController = rememberNavController()
+    MyRentalsScreen(
+        navController = navController,
+
+        )
+
 }
