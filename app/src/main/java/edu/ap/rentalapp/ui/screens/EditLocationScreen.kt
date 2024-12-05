@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -24,6 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import edu.ap.rentalapp.components.OSM
+import edu.ap.rentalapp.components.findGeoLocationFromAddress
+import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -38,17 +42,26 @@ fun EditLocationScreen(
     modifier: Modifier = Modifier,
     context: Context,
     navController: NavController,
+    user: User?,
+    addressLine: String
 ) {
 
-    var address by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf(addressLine) }
+    var latitude by remember { mutableDoubleStateOf(user!!.lat.toDouble()) }
+    var longitude by remember { mutableDoubleStateOf(user!!.lon.toDouble()) }
+
     val coroutineScope = rememberCoroutineScope()
+
+//    if (addressLine != null) {
+//        address = addressLine
+//    }
 
 
     Column(
         modifier = modifier
             .padding(16.dp)
             .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Address input field
@@ -59,13 +72,32 @@ fun EditLocationScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OSM(
+            latitude = latitude,
+            longitude = longitude,
+            context = context,
+            modifier = modifier
+                .height(400.dp)
+                .padding(15.dp)
+                .fillMaxWidth()
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Submit button
         Button(
             onClick = {
                 coroutineScope.launch {
-                    fetchCoordinatesAndSave(address, context)
+                    //fetchCoordinatesAndSave(address, context)
+                    findGeoLocationFromAddress(
+                        address = address,
+                        assignLat = { lat -> latitude = lat },
+                        assignLon = { lon -> longitude = lon },
+                        context = context
+                    )
                 }
             }
         ) {

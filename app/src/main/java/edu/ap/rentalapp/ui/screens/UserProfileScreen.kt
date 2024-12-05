@@ -1,7 +1,6 @@
 package edu.ap.rentalapp.ui.screens
 
 import android.content.Context
-import android.location.Geocoder
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -31,15 +30,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.gson.Gson
+import edu.ap.rentalapp.components.getAddressFromLatLng
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.withContext
-import java.util.Locale
 
 @Composable
 fun UserProfileScreen(
@@ -161,7 +158,7 @@ fun UserProfileScreen(
                     Box(
                         modifier = modifier
                             .fillMaxWidth()
-                            .clickable { editLocation(navController, userData!!) },
+                            .clickable { editLocation(navController, userData!!, address) },
                         contentAlignment = Alignment.TopStart
                     ) {
                         Column {
@@ -242,31 +239,13 @@ fun backToHome(navController: NavController) {
     navController.navigate("home")
 }
 
-fun editLocation(navController: NavController, user: User) {
-    //val userData = Uri.encode(Gson().toJson(user))
-    navController.navigate("editLocation")
+fun editLocation(navController: NavController, user: User, address: String) {
+    val userData = Uri.encode(Gson().toJson(user))
+    navController.navigate("editLocation/${userData}/${address}")
 }
 
 fun editUsername(navController: NavController, user: User) {
     val userData = Uri.encode(Gson().toJson(user))
     navController.navigate("editUserName/${userData}")
 
-}
-
-suspend fun getAddressFromLatLng(context: Context, latitude: Double, longitude: Double): String? {
-    return withContext(Dispatchers.IO) {
-        try {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
-            if (!addresses.isNullOrEmpty()) {
-                addresses[0].getAddressLine(0) // Full address
-            } else {
-                "Address not found"
-            }
-        } catch (e: Exception) {
-            //e.printStackTrace()
-            Log.d("location", "getAddressFromLatLng: $e")
-            "Error fetching address"
-        }
-    }
 }

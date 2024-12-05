@@ -28,7 +28,6 @@ class AuthenticationManager(private val context: Context) {
                 val userId = auth.currentUser?.uid
                 if (userId != null) {
                     val userService = UserServiceSingleton.getInstance(context)
-                    val username = inEmail.substringBefore("@")
                     userService.saveUserData(
                         userId = userId,
                         email = inEmail,

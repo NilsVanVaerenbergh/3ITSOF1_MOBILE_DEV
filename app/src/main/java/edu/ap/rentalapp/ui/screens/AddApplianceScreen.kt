@@ -1,7 +1,5 @@
 package edu.ap.rentalapp.ui.screens
 
-import android.content.Context
-import android.location.Geocoder
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -61,9 +59,9 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import edu.ap.rentalapp.components.OSM
+import edu.ap.rentalapp.components.findGeoLocationFromAddress
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.ui.theme.Blue
-import java.util.Locale
 
 
 @Composable
@@ -445,37 +443,4 @@ fun uploadApplianceToFirebase(
         .addOnFailureListener { exception -> onError(exception) }
 
 
-}
-
-fun findGeoLocationFromAddress(
-    address: String,
-    assignLat: (latitude: Double) -> Unit,
-    assignLon: (longitude: Double) -> Unit,
-    context: Context
-) {
-    if (address.isNotBlank()) {
-        val geocoder = Geocoder(context, Locale.getDefault())
-        try {
-            val results = geocoder.getFromLocationName(address, 1)
-            if (results != null) {
-                if (results.isNotEmpty()) {
-                    val location = results[0]
-                    assignLat(location.latitude)
-                    assignLon(location.longitude)
-                } else {
-                    Toast.makeText(
-                        context,
-                        "Location not found",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        } catch (e: Exception) {
-            Toast.makeText(
-                context,
-                "Error: ${e.localizedMessage}",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
 }

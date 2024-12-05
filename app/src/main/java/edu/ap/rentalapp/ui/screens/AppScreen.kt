@@ -55,7 +55,7 @@ fun AppScreen() {
         "myRentals" to "My Rentals",
         "profile" to "Profile",
         "editUserName/{user}" to "Edit Username",
-        "editLocation" to "Edit Location",
+        "editLocation/{user}/{address}" to "Edit Location",
         "rental/{id}" to "Rent appliance",
         "rental/{id}/rent" to "Select dates"
     )
@@ -174,6 +174,7 @@ fun AppScreen() {
             ) { backStackEntry ->
                 val userData = backStackEntry.arguments?.getString("user")
                 val user = Gson().fromJson(userData, User::class.java)
+
                 EditUserNameScreen(
                     context = context,
                     navController = navController,
@@ -181,11 +182,19 @@ fun AppScreen() {
                 )
             }
             composable(
-                route = "editLocation"
-            ) {
+                route = "editLocation/{user}/{address}",
+                arguments = listOf(navArgument("user") { type = NavType.StringType }, navArgument("address") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val userData = backStackEntry.arguments?.getString("user")
+                val user = Gson().fromJson(userData, User::class.java)
+
+                val address = backStackEntry.arguments?.getString("address")
+
                 EditLocationScreen(
                     context = context,
-                    navController = navController
+                    navController = navController,
+                    user = user,
+                    addressLine = address!!
                 )
             }
             composable(route = "home") {
