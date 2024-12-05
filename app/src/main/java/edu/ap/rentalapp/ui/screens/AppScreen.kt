@@ -93,7 +93,7 @@ fun AppScreen() {
             if (permissionState.status.isGranted && userLocation == null){
                 getCurrentLocation(context){ location ->
                     if (location != null) {
-                        saveUserLocationToFirebase(context, location.longitude, location.latitude)
+                        saveUserLocationToFirebase(context, location.latitude, location.longitude)
                         userLocation = location
                     }
 
