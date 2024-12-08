@@ -40,10 +40,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,8 +62,13 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import edu.ap.rentalapp.components.OSM
 import edu.ap.rentalapp.components.findGeoLocationFromAddress
+import edu.ap.rentalapp.components.getAddressFromLatLng
+import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
+import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import edu.ap.rentalapp.ui.theme.Blue
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 
 @Composable
@@ -71,7 +78,10 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     val context = LocalContext.current
 
     val authenticationManager = remember { AuthenticationManager(context) }
+    val userService = remember { UserServiceSingleton.getInstance(context) }
     val user = authenticationManager.auth.currentUser
+    var userData by remember { mutableStateOf<User?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -86,6 +96,23 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
     var zoomLevel by remember { mutableDoubleStateOf(18.0) }
+
+    LaunchedEffect(user) {
+        userService.getUserByUserId(user?.uid.toString()).onEach { result ->
+            if (result.isSuccess) {
+                val document = result.getOrNull()
+                if (document != null && document.exists()) {
+                    userData = document.toObject(User::class.java)
+                    Log.d("FIRESTORE", "AddApplianceScreen: $userData")
+
+                    latitude = userData?.lat?.toDouble() ?: 0.0
+                    longitude = userData?.lon?.toDouble() ?: 0.0
+
+                    address = getAddressFromLatLng(context, latitude, longitude).toString()
+                }
+            }
+        }.launchIn(coroutineScope)
+    }
 
 
     Column(
@@ -198,6 +225,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                     },
                     modifier = modifier
                         .padding(vertical = paddingInBetween)
+                        .padding(bottom = 20.dp)
                         .fillMaxWidth()
                 ) {
                     Row {

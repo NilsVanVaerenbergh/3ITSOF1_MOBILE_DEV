@@ -53,6 +53,7 @@ fun AppScreen() {
         "home" to "Home",
         "myReservations" to "Reservations",
         "myRentals" to "My Rentals",
+        "addAppliance" to "Add appliance",
         "profile" to "Profile",
         "editUserName/{user}" to "Edit Username",
         "editLocation/{user}/{address}" to "Edit Location",
