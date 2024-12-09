@@ -1,21 +1,28 @@
 package edu.ap.rentalapp.components
 
 import android.content.Context
+import android.graphics.Color
 import android.location.Geocoder
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import edu.ap.rentalapp.R
+import edu.ap.rentalapp.entities.ApplianceDTO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.osmdroid.config.Configuration
+import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polygon
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import java.io.File
 import java.util.Locale
+import kotlin.math.cos
 
 @Composable
 fun OSM(
@@ -23,6 +30,8 @@ fun OSM(
     latitude: Double = 0.0,
     longitude: Double = 0.0,
     zoomLevel: Double = 18.0,
+    radius: Double = 0.0,
+    appliances: List<ApplianceDTO>,
     context: Context,
 ) {
     AndroidView(
@@ -49,7 +58,16 @@ fun OSM(
             val marker = Marker(mapView)
             marker.position = GeoPoint(latitude, longitude)
             marker.title = "Marker at $latitude, $longitude"
+            marker.icon = ContextCompat.getDrawable(context, R.drawable.home2)
             mapView.overlays.add(marker)
+
+            updateMapWithOverlays(
+                context,
+                mapView,
+                GeoPoint(latitude, longitude),
+                radius,
+                appliances
+            )
 
             // Adjust zoom controls position
             // TODO
@@ -58,6 +76,16 @@ fun OSM(
         },
         update = { mapView ->
             mapView.overlays.removeIf { it is Marker }
+            mapView.overlays.removeIf { it is Polygon }
+
+            updateMapWithOverlays(
+                context,
+                mapView,
+                GeoPoint(latitude, longitude),
+                radius,
+                appliances
+            )
+
 
             // Update map state if required
             mapView.controller.setCenter(GeoPoint(latitude, longitude))
@@ -66,6 +94,7 @@ fun OSM(
             val marker = Marker(mapView)
             marker.position = GeoPoint(latitude, longitude)
             marker.title = "Marker at $latitude, $longitude"
+            marker.icon = ContextCompat.getDrawable(context, R.drawable.home2)
             mapView.overlays.add(marker)
 
             //Refresh map
@@ -73,6 +102,78 @@ fun OSM(
         }
     )
 }
+
+fun createRadiusCircle(center: GeoPoint, radius: Double, mapView: MapView): Polygon {
+    val circle = Polygon(mapView)
+    circle.points = Polygon.pointsAsCircle(center, radius * 1000.0) // Radius in meters
+    circle.fillPaint.color =
+        0x20FF0000 // Transparent red // Color.argb(50, 0, 0, 255) // Transparent blue
+    circle.outlinePaint.color = Color.RED
+    circle.fillPaint.strokeWidth = 2f
+    return circle
+}
+
+fun calculateBoundingBox(center: GeoPoint, radiusInMeters: Double): BoundingBox {
+    val latRadius =
+        radiusInMeters / 111000.0 // Convert radius to latitude degrees (~111 km per degree)
+    val lonRadius =
+        radiusInMeters / (111000.0 * cos(Math.toRadians(center.latitude))) // Adjust for latitude
+
+    val north = center.latitude + latRadius
+    val south = center.latitude - latRadius
+    val east = center.longitude + lonRadius
+    val west = center.longitude - lonRadius
+
+    return BoundingBox(north, east, south, west)
+}
+
+fun updateApplianceMarkers(context: Context, mapView: MapView, appliances: List<ApplianceDTO>) {
+    mapView.overlays.removeIf { it is Marker } // Clear previous markers
+
+    appliances.forEach { appliance ->
+        val marker = Marker(mapView).apply {
+            position = GeoPoint(appliance.latitude, appliance.longitude)
+            title = "${appliance.name}\n${appliance.address}"
+            when (appliance.category) {
+                "Kitchen" -> icon = ContextCompat.getDrawable(context, R.drawable.kitchen)
+                "Garden" -> icon = ContextCompat.getDrawable(context, R.drawable.garden)
+                "Maintenance" -> icon = ContextCompat.getDrawable(context, R.drawable.maintenance)
+                "Other" -> icon = ContextCompat.getDrawable(context, R.drawable.other)
+            }
+        }
+        mapView.overlays.add(marker)
+    }
+}
+
+fun updateMapWithOverlays(
+    context: Context,
+    mapView: MapView,
+    center: GeoPoint,
+    radius: Double,
+    appliances: List<ApplianceDTO>
+) {
+
+    if (appliances.isNotEmpty() && radius > 0) {
+        // Remove existing circles
+        mapView.overlays.removeIf { it is Polygon }
+
+        // Add radius circle
+        val circle = createRadiusCircle(center, radius, mapView)
+        mapView.overlays.add(circle)
+
+        // Add markers for appliances
+        updateApplianceMarkers(context, mapView, appliances)
+
+
+        // Calculate and apply bounding box to fit the circle
+        val boundingBox = calculateBoundingBox(center, radius * 1000.0) // Radius in meters
+        mapView.zoomToBoundingBox(boundingBox, true)
+
+        // Refresh map
+        //mapView.invalidate()
+    }
+}
+
 
 fun findGeoLocationFromAddress(
     address: String,

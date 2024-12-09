@@ -118,6 +118,7 @@ fun EditLocationScreen(
                 latitude = latitude,
                 longitude = longitude,
                 context = context,
+                appliances = emptyList(),
                 modifier = modifier
                     //.height(400.dp)
                     .padding(15.dp)

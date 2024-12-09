@@ -70,6 +70,7 @@ import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import edu.ap.rentalapp.ui.theme.Blue
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -222,6 +223,10 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                 longitude = lon
                             },
                         )
+                        coroutineScope.launch {
+                            val addressFromLatLon = getAddressFromLatLng(context, latitude, longitude).toString()
+                            address = addressFromLatLon
+                        }
 
                     },
                     modifier = modifier
@@ -257,6 +262,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                         latitude = latitude,
                         longitude = longitude,
                         zoomLevel = 18.0,
+                        appliances = emptyList(),
                         context = context,
                     )
                 }
