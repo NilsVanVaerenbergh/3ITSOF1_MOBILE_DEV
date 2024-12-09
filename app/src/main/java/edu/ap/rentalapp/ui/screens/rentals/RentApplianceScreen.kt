@@ -115,8 +115,7 @@ fun RentApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCon
                     context = context,
                     latitude = userData!!.lat.toDouble(),
                     longitude = userData!!.lon.toDouble(),
-                    radius = 500.0,
-                    appliances = listOf(appliance),
+                    appliances = listOf(appliance!!) ,
                     modifier = modifier
                 )
             }
