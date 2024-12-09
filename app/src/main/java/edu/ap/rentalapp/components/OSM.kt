@@ -13,6 +13,7 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import java.io.File
 import java.util.Locale
 
@@ -38,6 +39,12 @@ fun OSM(
             mapView.controller.setZoom(zoomLevel)
             mapView.controller.setCenter(GeoPoint(latitude, longitude))
 
+            // Add rotation gesture overlay
+            val rotationGestureOverlay = RotationGestureOverlay(mapView)
+            rotationGestureOverlay.isEnabled = true
+            mapView.overlays.add(rotationGestureOverlay)
+            mapView.mapOrientation = 0.0f
+
             // Add Marker
             val marker = Marker(mapView)
             marker.position = GeoPoint(latitude, longitude)
@@ -50,7 +57,7 @@ fun OSM(
             mapView
         },
         update = { mapView ->
-            mapView.overlays.clear()
+            mapView.overlays.removeIf { it is Marker }
 
             // Update map state if required
             mapView.controller.setCenter(GeoPoint(latitude, longitude))
