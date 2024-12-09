@@ -153,7 +153,7 @@ fun updateMapWithOverlays(
     appliances: List<ApplianceDTO>
 ) {
 
-    if (appliances.isNotEmpty() && radius > 0) {
+    if (radius > 0.0){
         // Remove existing circles
         mapView.overlays.removeIf { it is Polygon }
 
@@ -161,16 +161,18 @@ fun updateMapWithOverlays(
         val circle = createRadiusCircle(center, radius, mapView)
         mapView.overlays.add(circle)
 
-        // Add markers for appliances
-        updateApplianceMarkers(context, mapView, appliances)
-
-
         // Calculate and apply bounding box to fit the circle
         val boundingBox = calculateBoundingBox(center, radius * 1000.0) // Radius in meters
         mapView.zoomToBoundingBox(boundingBox, true)
 
-        // Refresh map
-        //mapView.invalidate()
+        if (appliances.isNotEmpty()) {
+
+            // Add markers for appliances
+            updateApplianceMarkers(context, mapView, appliances)
+            
+            // Refresh map
+            //mapView.invalidate()
+        }
     }
 }
 

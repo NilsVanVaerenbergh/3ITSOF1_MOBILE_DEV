@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,8 +35,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -56,8 +53,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,9 +62,10 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import edu.ap.rentalapp.components.CategorySelect
 import edu.ap.rentalapp.components.OSM
+import edu.ap.rentalapp.components.filterItemsByCategory
 import edu.ap.rentalapp.components.getAddressFromLatLng
-import edu.ap.rentalapp.entities.Appliance
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
@@ -104,13 +100,17 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     val rentalService = RentalServiceSingleton.getInstance(context)
     val rentalList = remember { mutableStateOf<List<ApplianceDTO>>(emptyList()) }
     val loading = remember { mutableStateOf(true) }
-    val selectedItem = remember { mutableStateOf<String?>(null) }
-    val dropdownExpanded = remember { mutableStateOf(false) }
-    var search by remember { mutableStateOf("") }
-    val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
+    var selectedCategory by remember { mutableStateOf("Category") }
+    var searchText by remember { mutableStateOf("") }
 
-    var filteredAppliances = remember(radiusInKm) {
-        filterAppliancesByRadius(rentalList.value, userData, radiusInKm)
+    val filteredAppliances = remember(radiusInKm, selectedCategory, searchText) {
+        filterAppliances(
+            rentalList.value,
+            userData,
+            radiusInKm,
+            selectedCategory,
+            searchText
+        )
     }
 
     //val filteredItems = filterItemsByDistance(rentalList, 51.216962, 4.399859, radiusInKm)
@@ -182,58 +182,32 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
 //
 //        SliderWithCustomTrackAndThumb()
 
-        OutlinedTextField(
-            value = search,
-            onValueChange = { text ->
-                search = text
-            },
-            placeholder = { Text("Search...") },
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search icon"
+        Row(
+            modifier = modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = searchText,
+                onValueChange = { text ->
+                    searchText = text
+                },
+                placeholder = { Text("Search...") },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search icon"
+                    )
+                },
+                modifier = modifier
+                    //.fillMaxWidth()
+                    .padding(15.dp)
+            )
+            Column {
+                CategorySelect(
+                    setCategory = { selectedCategory = it }
                 )
-            },
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(15.dp)
-        )
+            }
+        }
 
-//        Row {
-//            ExposedDropdownMenuBox(
-//                expanded = dropdownExpanded.value,
-//                onExpandedChange = { dropdownExpanded.value = it }
-//            ) {
-//                TextField(
-//                    value = selectedItem.value ?: "Select Option",
-//                    onValueChange = {},
-//                    label = { Text("Zoek op categorie") },
-//                    readOnly = true,
-//                    modifier = Modifier.menuAnchor()
-//                )
-//                ExposedDropdownMenu(
-//                    expanded = dropdownExpanded.value,
-//                    onDismissRequest = { dropdownExpanded.value = false }
-//                ) {
-//                    categories.forEach { category ->
-//                        DropdownMenuItem(
-//                            text = { Text(text = category) },
-//                            onClick = {
-//                                selectedItem.value = category
-//                                dropdownExpanded.value = false
-//                            }
-//                        )
-//                    }
-//                }
-//            }
-//            Button(
-//                onClick = {
-//                    selectedItem.value = ""
-//                }
-//            ) {
-//                Text("Verwijder filter")
-//            }
-//        }
         SwipeRefresh(
             state = swipeRefreshState,
             onRefresh = {
@@ -252,26 +226,23 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                     } else {
-                        val filteredRentals =
-                            remember(rentalList.value, search, selectedItem.value) {
-                                rentalList.value.filter { product ->
-                                    product.name.lowercase().contains(search.lowercase()) &&
-                                            (selectedItem.value == null ||
-                                                    product.category.lowercase()
-                                                        .contains(selectedItem.value!!.lowercase()))
-                                }
-                            }
-//                        val filteredAppliances = remember(radiusInKm) {
-//                            filterAppliancesByRadius(rentalList.value, userData, radiusInKm)
-//                        }
-
                         LazyColumn(
                             modifier = modifier
                                 .weight(1f)
                                 .fillMaxWidth()
                         ) {
-                            items(filteredAppliances) { appliance ->
-                                CustomCard(appliance, navController)
+                            if (filteredAppliances.isNotEmpty()) {
+                                items(filteredAppliances) { appliance ->
+                                    CustomCard(appliance, navController)
+                                }
+                            }
+                            else{
+                                item{ Text(
+                                    text = "Nothing found",
+                                    modifier = modifier
+                                        .padding(20.dp)
+                                        .align(Alignment.CenterHorizontally)
+                                ) }
                             }
                         }
                     }
@@ -282,13 +253,21 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     }
 }
 
-fun filterAppliancesByRadius(
+fun filterAppliances(
     appliances: List<ApplianceDTO>,
     userData: User?,
-    radiusInKm: Double
+    radiusInKm: Double,
+    category: String,
+    searchText: String
 ): List<ApplianceDTO> {
 
-    return appliances.filter { appliance ->
+    val filteredByCategory = filterItemsByCategory(appliances, category)
+
+    val filteredByText = filteredByCategory.filter { appliance ->
+        appliance.name.lowercase().contains(searchText.lowercase())
+    }
+
+    return filteredByText.filter { appliance ->
         Log.d("location", "filterAppliancesByRadius: ${appliance.name}")
         calculateDistance(
             userData!!.lat.toDouble(),
@@ -374,13 +353,13 @@ fun RadiusSlider(
                     .clickable { showDialog = true }
             )
 
-            if (showDialog){
+            if (showDialog) {
                 BasicAlertDialog(
                     onDismissRequest = { showDialog = false },
-                ){
+                ) {
                     var newMaxRadius by remember { mutableStateOf(maxRadius.toString()) }
 
-                    Column{
+                    Column {
                         TextField(
                             value = newMaxRadius,
                             onValueChange = { newMaxRadius = it },
@@ -407,34 +386,6 @@ fun RadiusSlider(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SliderWithCustomTrackAndThumb() {
-    val sliderState = remember {
-        SliderState(
-            valueRange = 0f..100f,
-            onValueChangeFinished = {
-                // launch some business logic update with the state you hold
-                // viewModel.updateSelectedSliderValue(sliderPosition)
-            }
-        )
-    }
-    val interactionSource = remember { MutableInteractionSource() }
-    val colors = SliderDefaults.colors(thumbColor = Color.Red, activeTrackColor = Color.Red)
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Text(text = "%.2f".format(sliderState.value))
-        Slider(
-            state = sliderState,
-            modifier = Modifier.semantics { contentDescription = "Localized Description" },
-            interactionSource = interactionSource,
-            thumb = {
-                SliderDefaults.Thumb(interactionSource = interactionSource, colors = colors)
-            },
-            track = { SliderDefaults.Track(colors = colors, sliderState = sliderState) }
-        )
-    }
-}
-
 /**
  * Calculates distance between 2 locations (in meters)
  * @param lat1 latitude of first location (Double)
@@ -450,21 +401,9 @@ fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): F
     return result[0] // Distance in meters
 }
 
-fun filterItemsByDistance(
-    items: List<Appliance>,
-    userLat: Double,
-    userLon: Double,
-    radiusInKm: Double
-): List<Appliance> {
-    return items.filter { item ->
-        val distanceInMeters = calculateDistance(userLat, userLon, item.latitude, item.longitude)
-        distanceInMeters <= radiusInKm * 1000 // Convert km to meters
-    }
-}
-
 // Function to fetch rentals from the service and update state
 suspend fun fetchRentals(
-    userId : String,
+    userId: String,
     rentalService: RentalService,
     rentalList: MutableState<List<ApplianceDTO>>,
     loading: MutableState<Boolean>

@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import edu.ap.rentalapp.entities.ApplianceDTO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -27,7 +28,7 @@ class MyRentalsViewModel : ViewModel() {
 
     private var auth: FirebaseAuth = Firebase.auth
 
-    val applianceData = mutableStateOf(emptyList<MyAppliance>())
+    val applianceData = mutableStateOf(emptyList<ApplianceDTO>())
 
     private fun getData() {
         val user = auth.currentUser?.uid.toString()
@@ -44,15 +45,15 @@ class MyRentalsViewModel : ViewModel() {
 
 }
 
-suspend fun fetchAppliances(userId: String): List<MyAppliance> {
+suspend fun fetchAppliances(userId: String): List<ApplianceDTO> {
     val firestore = FirebaseFirestore.getInstance()
-    val appliances = emptyList<MyAppliance>().toMutableList()
+    val appliances = emptyList<ApplianceDTO>().toMutableList()
 
     try {
         firestore.collection("myAppliances")
             .whereEqualTo("userId", userId)
             .get().await().map { app ->
-                val result = app.toObject(MyAppliance::class.java)
+                val result = app.toObject(ApplianceDTO::class.java)
                 appliances += result
             }
     } catch (e: FirebaseFirestoreException) {
