@@ -141,23 +141,16 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-
             Text(
-                text = "Address: ${appliance!!.address}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            Text(
-                text = "Location:",
+                text = "Price:",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
-                text = "Latitude: ${appliance!!.latitude}, Longitude: ${appliance!!.longitude}",
-                style = MaterialTheme.typography.bodyMedium
+                text = appliance!!.pricePerDay.toString(),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
-
             Button(
                 onClick = {
                     navController.navigate("rental/${id}/rent")

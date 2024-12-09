@@ -27,7 +27,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun MyReservationsScreen(modifier: Modifier = Modifier) {
-    // State to hold rentals
     val rentalsState = remember { mutableStateOf<List<ApplianceDTO>>(emptyList()) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -36,16 +35,13 @@ fun MyReservationsScreen(modifier: Modifier = Modifier) {
     val authenticationManager = remember { AuthenticationManager(context) }
     val user = authenticationManager.auth.currentUser
     val userId = user?.uid ?: ""
-    // Load rentals when the screen is shown
     LaunchedEffect(userId) {
         coroutineScope.launch {
-            // Replace with the actual call to getRentalsByUserId
             val rentals = rentalService.getRentalsByUserId(userId)
             rentalsState.value = rentals
         }
     }
 
-    // Display the list of rentals
     if (rentalsState.value.isEmpty()) {
         Box(
             modifier = modifier.fillMaxSize(),

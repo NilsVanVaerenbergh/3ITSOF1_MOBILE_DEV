@@ -47,6 +47,7 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
                         latitude = appliance.latitude,
                         longitude = appliance.longitude,
                         name = appliance.name,
+                        pricePerDay = appliance.pricePerDay,
                         rentalDates = rentalDates,
                         userId = appliance.userId
                     )
