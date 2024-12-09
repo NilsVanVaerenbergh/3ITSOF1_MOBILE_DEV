@@ -27,6 +27,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.gson.Gson
+
 import edu.ap.rentalapp.components.getCurrentLocation
 import edu.ap.rentalapp.components.saveUserLocationToFirebase
 import edu.ap.rentalapp.entities.BottomNavItem
