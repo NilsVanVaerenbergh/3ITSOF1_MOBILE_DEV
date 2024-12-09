@@ -1,16 +1,24 @@
 package edu.ap.rentalapp.ui.screens
 
 import android.content.Context
-import android.location.Location
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -22,20 +30,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.firestore.FirebaseFirestore
 import edu.ap.rentalapp.components.OSM
 import edu.ap.rentalapp.components.findGeoLocationFromAddress
+import edu.ap.rentalapp.components.getAddressFromLatLng
 import edu.ap.rentalapp.entities.User
-import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONArray
-import java.io.IOException
 
 @Composable
 fun EditLocationScreen(
@@ -50,12 +56,9 @@ fun EditLocationScreen(
     var latitude by remember { mutableDoubleStateOf(user!!.lat.toDouble()) }
     var longitude by remember { mutableDoubleStateOf(user!!.lon.toDouble()) }
 
+    var isSaving by remember { mutableStateOf(false) }
+
     val coroutineScope = rememberCoroutineScope()
-
-//    if (addressLine != null) {
-//        address = addressLine
-//    }
-
 
     Column(
         modifier = modifier
@@ -68,109 +71,116 @@ fun EditLocationScreen(
         TextField(
             value = address,
             onValueChange = { address = it },
-            label = { Text("Locatie zetten op address") },
+            label = { Text("Set location to") },
             modifier = Modifier.fillMaxWidth()
         )
 
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OSM(
-            latitude = latitude,
-            longitude = longitude,
-            context = context,
+        Button(
+            onClick = {
+                findGeoLocationFromAddress(
+                    address = address,
+                    context = context,
+                    assignLat = { lat ->
+                        latitude = lat
+                    },
+                    assignLon = { lon ->
+                        longitude = lon
+                    },
+                )
+
+            },
             modifier = modifier
-                .height(400.dp)
-                .padding(15.dp)
+                .padding(bottom = 15.dp)
                 .fillMaxWidth()
-        )
+        ) {
+            Row {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Location icon"
+                )
+                Text("Find Location")
+            }
+
+        }
+
+        Box(
+            modifier = modifier
+                .aspectRatio(0.75f) // Adjust aspect ratio (e.g., 1:1 for a square map view)
+                .clip(RoundedCornerShape(8.dp))
+                .border(1.dp, Color.Black)
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            OSM(
+                latitude = latitude,
+                longitude = longitude,
+                context = context,
+                modifier = modifier
+                    //.height(400.dp)
+                    .padding(15.dp)
+                    .fillMaxSize()
+
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Submit button
         Button(
             onClick = {
+                isSaving = true
                 coroutineScope.launch {
-                    //fetchCoordinatesAndSave(address, context)
-                    findGeoLocationFromAddress(
-                        address = address,
-                        assignLat = { lat -> latitude = lat },
-                        assignLon = { lon -> longitude = lon },
-                        context = context
-                    )
-                }
-            }
-        ) {
-            Text("Save Location")
-        }
-    }
-
-}
-
-fun fetchCoordinatesFlow(address: String): Flow<Location?> {
-    val client = OkHttpClient()
-    val formattedAddress = address.replace(" ", "+") // Format address for URL
-    val url =
-        "http://nominatim.openstreetmap.org/search?q=$formattedAddress&format=json&polygon=1&addressdetails=1"
-    val request = Request.Builder().url(url).build()
-
-    return flow {
-        try {
-            val response = client.newCall(request).execute()
-            if (response.isSuccessful) {
-                val responseBody = response.body?.string()
-                if (!responseBody.isNullOrEmpty()) {
-                    val jsonArray = JSONArray(responseBody)
-                    if (jsonArray.length() > 0) {
-                        val firstResult = jsonArray.getJSONObject(0)
-                        val lat = firstResult.getDouble("lat")
-                        val lon = firstResult.getDouble("lon")
-
-                        // Create Android Location instance
-                        val androidLocation = Location("GeocodingService").apply {
-                            latitude = lat
-                            longitude = lon
-                        }
-                        emit(androidLocation)
-                        return@flow
+                    if (user != null) {
+                        updateUserLocation(context, user.userId, latitude, longitude, coroutineScope)
+                        navController.popBackStack()
+                    } else {
+                        Toast.makeText(context, "An error occured while saving", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
-            }
-            emit(null) // Emit null if no successful response or data is found
-        } catch (e: IOException) {
-            e.printStackTrace()
-            emit(null) // Emit null on exception
+                isSaving = false
+            },
+            enabled = !isSaving
+        ) {
+            Text(if (isSaving) "Saving..." else "Save Location")
         }
     }
+
 }
 
-suspend fun fetchCoordinatesAndSave(address: String, context: Context) {
-    val userService = UserServiceSingleton.getInstance(context)
-    val auth = FirebaseAuth.getInstance()
-    val userId = auth.currentUser?.uid.toString()
-    val email = auth.currentUser?.email.toString()
+fun updateUserLocation(context: Context, userId: String, newLat: Double, newLon: Double, coroutineScope: CoroutineScope) {
 
-    // Collect the flow from fetchCoordinatesFlow
-    fetchCoordinatesFlow(address).collect { location ->
-        if (location != null && (userId != null && email != null)) {
-            // Save the location to the user service
-            val resultFlow = userService.saveUserData(userId, email, location = location)
+    val db = FirebaseFirestore.getInstance()
+    val userRef = db.collection("users").document(userId)
 
-            // Collect result from the user service flow
-            resultFlow.collect { result ->
-                if (result.isSuccess) {
-                    Toast.makeText(context, "Location saved successfully", Toast.LENGTH_SHORT)
-                        .show()
-                } else {
-                    Toast.makeText(
-                        context,
-                        "Error saving location: ${result.exceptionOrNull()?.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        } else {
-            Toast.makeText(context, "Could not fetch coordinates", Toast.LENGTH_SHORT).show()
-        }
+    val locationUpdate = userRef.update(
+        mapOf(
+            "lat" to newLat.toString(),
+            "lon" to newLon.toString()
+        )
+    ).addOnSuccessListener {
+        Log.d("UpdateLocation", "Location updated successfully!")
+    }.addOnFailureListener { e ->
+        Log.e("UpdateLocation", "Error updating location", e)
     }
+
+    val addressUpdate = Tasks.whenAllComplete(locationUpdate)
+        .addOnSuccessListener {
+            coroutineScope.launch {
+                val address = getAddressFromLatLng(context, newLat, newLon)
+                userRef.update(
+                    mapOf(
+                        "address" to address
+                    )
+                ).addOnSuccessListener {
+                    Log.d("UpdateAddress", "Address updated successfully!")
+                }.addOnFailureListener { e ->
+                    Log.e("UpdateAddress", "Error updating address", e)
+                }
+
+            }
+        }
 }

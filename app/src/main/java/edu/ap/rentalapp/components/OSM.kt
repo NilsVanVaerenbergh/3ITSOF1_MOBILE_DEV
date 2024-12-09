@@ -21,7 +21,7 @@ fun OSM(
     modifier: Modifier = Modifier,
     latitude: Double = 0.0,
     longitude: Double = 0.0,
-    zoomLevel: Double = 17.0,
+    zoomLevel: Double = 18.0,
     context: Context,
 ) {
     AndroidView(
