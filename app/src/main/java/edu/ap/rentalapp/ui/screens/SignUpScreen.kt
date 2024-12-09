@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -79,6 +81,10 @@ fun SignUpScreen(
                 onValueChange = {newEmail -> email = newEmail},
                 placeholder = { Text(text="Email") },
                 leadingIcon = { Icon(imageVector = Icons.Outlined.Email, contentDescription = "email icon") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email
+                ),
+                singleLine = true
             )
             Spacer(modifier = Modifier.height(9.dp))
             OutlinedTextField(
@@ -96,7 +102,7 @@ fun SignUpScreen(
                     } else {
                         authenticationManager.signUpWithEmail(email,password)
                             .onEach { response ->
-                                if(response is AuthResponse.Succes) {
+                                if(response is AuthResponse.Success) {
                                     onSignUpSuccess()
                                 }
                                 if(response is AuthResponse.Error) {

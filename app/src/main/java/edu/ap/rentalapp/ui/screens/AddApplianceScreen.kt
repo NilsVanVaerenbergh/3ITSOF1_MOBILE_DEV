@@ -1,7 +1,5 @@
 package edu.ap.rentalapp.ui.screens
 
-import android.content.Context
-import android.location.Geocoder
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -15,9 +13,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
@@ -42,10 +41,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,9 +62,15 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
 import edu.ap.rentalapp.components.OSM
+import edu.ap.rentalapp.components.findGeoLocationFromAddress
+import edu.ap.rentalapp.components.getAddressFromLatLng
+import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
+import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import edu.ap.rentalapp.ui.theme.Blue
-import java.util.Locale
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -73,7 +80,10 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     val context = LocalContext.current
 
     val authenticationManager = remember { AuthenticationManager(context) }
+    val userService = remember { UserServiceSingleton.getInstance(context) }
     val user = authenticationManager.auth.currentUser
+    var userData by remember { mutableStateOf<User?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -88,6 +98,23 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
     var zoomLevel by remember { mutableDoubleStateOf(18.0) }
+
+    LaunchedEffect(user) {
+        userService.getUserByUserId(user?.uid.toString()).onEach { result ->
+            if (result.isSuccess) {
+                val document = result.getOrNull()
+                if (document != null && document.exists()) {
+                    userData = document.toObject(User::class.java)
+                    Log.d("FIRESTORE", "AddApplianceScreen: $userData")
+
+                    latitude = userData?.lat?.toDouble() ?: 0.0
+                    longitude = userData?.lon?.toDouble() ?: 0.0
+
+                    address = getAddressFromLatLng(context, latitude, longitude).toString()
+                }
+            }
+        }.launchIn(coroutineScope)
+    }
 
 
     Column(
@@ -196,10 +223,15 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                 longitude = lon
                             },
                         )
+                        coroutineScope.launch {
+                            val addressFromLatLon = getAddressFromLatLng(context, latitude, longitude).toString()
+                            address = addressFromLatLon
+                        }
 
                     },
                     modifier = modifier
                         .padding(vertical = paddingInBetween)
+                        .padding(bottom = 15.dp)
                         .fillMaxWidth()
                 ) {
                     Row {
@@ -215,15 +247,25 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
 
             item {
-                OSM(
+                Box(
                     modifier = modifier
-                        .padding(vertical = 50.dp)
-                        .height(100.dp),
-                    latitude = latitude,
-                    longitude = longitude,
-                    zoomLevel = 18.0,
-                    context = context,
-                )
+                        .aspectRatio(1.5f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(1.dp, Color.LightGray)
+                        .weight(1f)
+                        .fillMaxWidth()
+                ){
+                    OSM(
+                        modifier = modifier
+                            .padding(15.dp),
+                            //.height(100.dp),
+                        latitude = latitude,
+                        longitude = longitude,
+                        zoomLevel = 18.0,
+                        appliances = emptyList(),
+                        context = context,
+                    )
+                }
 
             }
 
@@ -279,20 +321,13 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                     modifier = modifier
                         .align(Alignment.CenterHorizontally)
                         .fillMaxWidth()
-                        .padding(top = 50.dp)
+                        .padding(top = 25.dp)
 
 
                 ) {
                     Text(text = "Add")
                 }
 
-            }
-
-            item {
-                OutlinedButton(onClick = { navController.navigate("myRentals") }
-                ) {
-                    Text("To rentals")
-                }
             }
         }
 
@@ -445,37 +480,4 @@ fun uploadApplianceToFirebase(
         .addOnFailureListener { exception -> onError(exception) }
 
 
-}
-
-fun findGeoLocationFromAddress(
-    address: String,
-    assignLat: (latitude: Double) -> Unit,
-    assignLon: (longitude: Double) -> Unit,
-    context: Context
-) {
-    if (address.isNotBlank()) {
-        val geocoder = Geocoder(context, Locale.getDefault())
-        try {
-            val results = geocoder.getFromLocationName(address, 1)
-            if (results != null) {
-                if (results.isNotEmpty()) {
-                    val location = results[0]
-                    assignLat(location.latitude)
-                    assignLon(location.longitude)
-                } else {
-                    Toast.makeText(
-                        context,
-                        "Location not found",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        } catch (e: Exception) {
-            Toast.makeText(
-                context,
-                "Error: ${e.localizedMessage}",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
 }

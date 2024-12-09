@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.gson.Gson
+import edu.ap.rentalapp.components.getAddressFromLatLng
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
@@ -50,6 +52,9 @@ fun UserProfileScreen(
     var userData by remember { mutableStateOf<User?>(null) }
 
     val userId = user?.uid.toString()
+
+    var address by remember { mutableStateOf("Loading...") }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp)// Ensure proper padding for visibility
@@ -61,7 +66,7 @@ fun UserProfileScreen(
             )
         } else {
             Log.d("FIRESTORE", "uid:$userId")
-            LaunchedEffect(userId) {
+            LaunchedEffect(userId, userData) {
                 isLoading = true
                 userService.getUserByUserId(userId = userId).onEach { result ->
                     if (result.isFailure) {
@@ -73,6 +78,15 @@ fun UserProfileScreen(
                         if (document != null && document.exists()) {
                             userData = document.toObject(User::class.java)
                             Log.d("FIRESTORE", "Mapped User: $userData")
+                            address = getAddressFromLatLng(
+                                context,
+                                userData!!.lat.toDouble(),
+                                userData!!.lon.toDouble()
+                            ).toString()
+                            Log.d(
+                                "location",
+                                "UserProfileScreen: $address, ${userData!!.lat}, ${userData!!.lon}"
+                            )
                         } else {
                             Toast.makeText(context, "User not found", Toast.LENGTH_LONG).show()
                         }
@@ -141,12 +155,11 @@ fun UserProfileScreen(
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-                    Row(
+                    Box(
                         modifier = modifier
                             .fillMaxWidth()
-                            .clickable { editLocation(navController, userData!!) },
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Bottom
+                            .clickable { editLocation(navController, userData!!, address) },
+                        contentAlignment = Alignment.TopStart
                     ) {
                         Column {
                             Text(
@@ -155,13 +168,14 @@ fun UserProfileScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                             Text(
-                                text = "example street 123 Antwerpen 2000 ",
+                                text = address,
                             )
                         }
                         Text(
                             text = "Klik om te bewerken",
                             color = Color.Gray,
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = modifier.align(Alignment.TopEnd)
                         )
                     }
                 }
@@ -201,7 +215,7 @@ fun UserProfileScreen(
                 .fillMaxWidth()
                 .clickable {
                     authenticationManager.signOut()
-                    navController.navigate("signIn"){
+                    navController.navigate("signIn") {
                         // So you can't backtrack back to the profile page/ app (which gives you unauthenticated access, user == null!!!)
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
@@ -225,9 +239,9 @@ fun backToHome(navController: NavController) {
     navController.navigate("home")
 }
 
-fun editLocation(navController: NavController, user: User) {
-    //val userData = Uri.encode(Gson().toJson(user))
-    navController.navigate("editLocation")
+fun editLocation(navController: NavController, user: User, address: String) {
+    val userData = Uri.encode(Gson().toJson(user))
+    navController.navigate("editLocation/${userData}/${address}")
 }
 
 fun editUsername(navController: NavController, user: User) {

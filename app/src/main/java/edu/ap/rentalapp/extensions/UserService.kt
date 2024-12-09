@@ -19,7 +19,7 @@ class UserService(private val firestore: FirebaseFirestore = Firebase.firestore,
             "email" to email,
             "username" to username,
             "lat" to location.latitude.toString(),
-            "lot" to location.longitude.toString(),
+            "lon" to location.longitude.toString(),
             "userId" to userId
         )
         firestore.collection("users").document(userId).set(user)

@@ -54,13 +54,20 @@ fun AppScreen() {
         "home" to "Home",
         "myReservations" to "Reservations",
         "myRentals" to "My Rentals",
+        "addAppliance" to "Add appliance",
         "profile" to "Profile",
         "editUserName/{user}" to "Edit Username",
-        "editLocation" to "Edit Location",
+        "editLocation/{user}/{address}" to "Edit Location",
         "rental/{id}" to "Rent appliance",
         "rental/{id}/rent" to "Select dates"
     )
-    val showBottomBarRoutes = listOf("home", "myReservations", "myRentals", "profile", "rental/{id}")//, "editUserName", "editLocation")
+    val showBottomBarRoutes = listOf(
+        "home",
+        "myReservations",
+        "myRentals",
+        "profile",
+        "rental/{id}"
+    )
     val bottomNavItems = listOf(
         BottomNavItem("Home", Icons.Outlined.Home, "home"),
         BottomNavItem("Reservations", Icons.Outlined.BookmarkBorder, "myReservations"),
@@ -74,9 +81,10 @@ fun AppScreen() {
     var userLocation by remember { mutableStateOf<Location?>(null) }
 
     // Permission state from Accompanist
-    val permissionState = rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+    val permissionState =
+        rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
 
-    if (!hasAskedForPermission){
+    if (!hasAskedForPermission) {
         SideEffect {
             hasAskedForPermission = true
             permissionState.launchPermissionRequest()
@@ -91,22 +99,15 @@ fun AppScreen() {
             hasAskedForPermission = false
             userLocation = null
 
-            if (permissionState.status.isGranted && userLocation == null){
-                getCurrentLocation(context){ location ->
+            if (permissionState.status.isGranted && userLocation == null) {
+                getCurrentLocation(context) { location ->
                     if (location != null) {
-                        saveUserLocationToFirebase(context, location.longitude, location.latitude)
+                        saveUserLocationToFirebase(context, location.latitude, location.longitude)
                         userLocation = location
                     }
 
                 }
             }
-//            RequestLocationPermission( onPermissionGranted = {
-//                getCurrentLocation(context) { location ->
-//                    if (location != null){
-//                        saveUserLocationToFirebase(context, location.latitude, location.longitude)
-//                    }
-//                }
-//            })
         } else {
             navController.navigate("signIn") {
                 popUpTo("home") { inclusive = true }
@@ -116,7 +117,8 @@ fun AppScreen() {
 
     Scaffold(
         topBar = {
-            val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+            val currentRoute =
+                navController.currentBackStackEntryAsState().value?.destination?.route
             if (currentRoute in showTopBarRoutes.keys) {
                 SharedTopAppBar(
                     title = showTopBarRoutes[currentRoute] ?: "",
@@ -126,7 +128,8 @@ fun AppScreen() {
 
         },
         bottomBar = {
-            val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+            val currentRoute =
+                navController.currentBackStackEntryAsState().value?.destination?.route
             if (currentRoute in showBottomBarRoutes) {
 //                SharedBottomBar(navController = navController)
                 NavigationBottomBar(
@@ -175,6 +178,7 @@ fun AppScreen() {
             ) { backStackEntry ->
                 val userData = backStackEntry.arguments?.getString("user")
                 val user = Gson().fromJson(userData, User::class.java)
+
                 EditUserNameScreen(
                     context = context,
                     navController = navController,
@@ -182,11 +186,21 @@ fun AppScreen() {
                 )
             }
             composable(
-                route = "editLocation"
-            ) {
+                route = "editLocation/{user}/{address}",
+                arguments = listOf(
+                    navArgument("user") { type = NavType.StringType },
+                    navArgument("address") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val userData = backStackEntry.arguments?.getString("user")
+                val user = Gson().fromJson(userData, User::class.java)
+
+                val address = backStackEntry.arguments?.getString("address")
+
                 EditLocationScreen(
                     context = context,
-                    navController = navController
+                    navController = navController,
+                    user = user,
+                    addressLine = address!!
                 )
             }
             composable(route = "home") {
@@ -211,13 +225,17 @@ fun AppScreen() {
 
             composable("rental/{id}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id") ?: ""
-                ApplianceScreen(modifier = Modifier.padding(innerPadding),
-                    navController = navController, id = id)
+                ApplianceScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    navController = navController, id = id
+                )
             }
             composable("rental/{id}/rent") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id") ?: ""
-                RentApplianceScreen(modifier = Modifier.padding(innerPadding),
-                    navController = navController, id = id)
+                RentApplianceScreen(
+                    modifier = Modifier.padding(innerPadding),
+                    navController = navController, id = id
+                )
             }
         }
     }

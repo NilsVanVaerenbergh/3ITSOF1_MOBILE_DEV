@@ -102,7 +102,7 @@ fun SignInScreen(
                     } else {
                         authenticationManager.signInWithEmail(email,password)
                             .onEach { response ->
-                                if(response is AuthResponse.Succes) {
+                                if(response is AuthResponse.Success) {
                                     onLoginSuccess()
                                 }
                                 if(response is AuthResponse.Error) {

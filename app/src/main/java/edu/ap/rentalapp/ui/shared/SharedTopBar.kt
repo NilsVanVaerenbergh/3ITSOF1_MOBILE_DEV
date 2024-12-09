@@ -3,7 +3,11 @@ package edu.ap.rentalapp.ui.shared
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -15,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
@@ -30,8 +35,20 @@ fun SharedTopAppBar(title: String, navController: NavController) {
         .build()
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    val noShowBackArrowScreens = listOf("home", "myReservations", "myRentals", "profile", "rental/{id}")
+    val showBackArrow =
+        navController.currentBackStackEntryAsState().value?.destination?.route !in noShowBackArrowScreens
+
+
     TopAppBar(
         title = { Text(text = title, color = Color.Black) },
+        navigationIcon = {
+            if (showBackArrow) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                }
+            }
+        },
         actions = {
             AsyncImage(
                 model = "https://api.dicebear.com/9.x/dylan/svg?seed=${auth.currentUser?.email}",

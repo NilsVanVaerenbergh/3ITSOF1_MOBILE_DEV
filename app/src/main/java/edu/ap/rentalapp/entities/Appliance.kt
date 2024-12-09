@@ -1,7 +1,6 @@
 package edu.ap.rentalapp.entities
 
 import com.google.firebase.firestore.DocumentId
-import java.util.Date
 
 data class Appliance(
     @DocumentId var id: String = "",
@@ -12,6 +11,7 @@ data class Appliance(
     var latitude: Double = 0.0,
     var longitude: Double = 0.0,
     var name: String = "",
+    var userId: String = ""
 ) {
-    constructor() : this("", "", "", "",emptyList(), 0.0, 0.0, "")
+    constructor() : this("", "", "", "",emptyList(), 0.0, 0.0, "", "")
 }

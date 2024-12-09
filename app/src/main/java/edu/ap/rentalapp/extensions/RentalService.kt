@@ -1,7 +1,6 @@
 package edu.ap.rentalapp.extensions
 
 import android.content.Context
-import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -48,7 +47,8 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
                         latitude = appliance.latitude,
                         longitude = appliance.longitude,
                         name = appliance.name,
-                        rentalDates = rentalDates
+                        rentalDates = rentalDates,
+                        userId = appliance.userId
                     )
 
                     appliances.add(applianceDTO)

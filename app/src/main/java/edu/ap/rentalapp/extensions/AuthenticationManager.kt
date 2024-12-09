@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 interface AuthResponse {
-    data object Succes : AuthResponse
+    data object Success : AuthResponse
     data class Error(val message: String) : AuthResponse
 }
 
@@ -28,7 +28,6 @@ class AuthenticationManager(private val context: Context) {
                 val userId = auth.currentUser?.uid
                 if (userId != null) {
                     val userService = UserServiceSingleton.getInstance(context)
-                    val username = inEmail.substringBefore("@")
                     userService.saveUserData(
                         userId = userId,
                         email = inEmail,
@@ -38,7 +37,7 @@ class AuthenticationManager(private val context: Context) {
                         })
                         .onEach { result ->
                             result.onSuccess {
-                                trySend(AuthResponse.Succes)
+                                trySend(AuthResponse.Success)
                             }.onFailure { exception ->
                                 trySend(
                                     AuthResponse.Error(
@@ -71,7 +70,7 @@ class AuthenticationManager(private val context: Context) {
     fun signInWithEmail(inEmail: String, inPassword: String): Flow<AuthResponse> = callbackFlow {
         auth.signInWithEmailAndPassword(inEmail, inPassword).addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                trySend(AuthResponse.Succes)
+                trySend(AuthResponse.Success)
             } else {
                 trySend(
                     AuthResponse.Error(

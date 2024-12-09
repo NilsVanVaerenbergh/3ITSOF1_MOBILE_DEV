@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,11 +22,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -55,6 +51,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
+import edu.ap.rentalapp.components.CategorySelect
+import edu.ap.rentalapp.components.filterItemsByCategory
+import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.ui.theme.Purple40
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -74,15 +73,10 @@ fun MyRentalsScreen(
     val appliances = viewModel.applianceData.value
     //Log.d("data", "MyRentalsScreen: $appliances")
 
-    val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
-    var expandedCat by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("Category") }
 
-    var expandedDistance by remember { mutableStateOf(false) }
-    var selectedDistance by remember { mutableStateOf("Distance") }
-    val options = listOf(1.0, 5.0, 10.0, 50.0, 100.0)
-    var radiusInKm by remember { mutableDoubleStateOf(100.0) } // Default to 5km
-    val filteredItems = filterItemsByDistance(appliances, 51.216962, 4.399859, radiusInKm)
+    val radiusInKm by remember { mutableDoubleStateOf(100.0) } // Default to 5km
+    //val filteredItems = filterItemsByDistance(appliances, 51.216962, 4.399859, radiusInKm)
 
 
     Column {
@@ -105,8 +99,6 @@ fun MyRentalsScreen(
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(15.dp)
-                    .padding(top = 30.dp)
-
             )
 
 
@@ -116,127 +108,92 @@ fun MyRentalsScreen(
             ) {
                 Column(
                     modifier = modifier
-                        .padding(vertical = 10.dp)
-                        .padding(horizontal = 15.dp),
+                        .padding(horizontal = 15.dp)
+                        .padding(bottom = 15.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
 
                 ) {
-                    OutlinedButton(
-                        onClick = { expandedCat = !expandedCat },
-                        modifier = modifier
-                    ) {
-                        Text(selectedCategory)
-                    }
-                    DropdownMenu(
-                        expanded = expandedCat,
-                        onDismissRequest = { expandedCat = false },
-                        modifier = modifier.fillMaxWidth()
-                    ) {
-                        for (cat in categories) {
-                            DropdownMenuItem(
-                                onClick = {
-                                    selectedCategory = cat
-                                    expandedCat = false
-                                },
-                                text = { Text(cat) }
-                            )
-                        }
-                        DropdownMenuItem(
-                            onClick = {
-                                selectedCategory = "Category"
-                                expandedCat = false
-                            },
-                            text = {
-                                Row {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Remove"
-                                    )
-                                    Text("Remove filter(s)")
-                                }
-                            }
-                        )
-                    }
+                    CategorySelect(
+                        setCategory = { selectedCategory = it }
+                    )
                 }
-                Spacer(modifier = modifier)
-                Column(
-                    modifier = modifier
-                        .padding(vertical = 10.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-
-                ) {
-                    OutlinedButton(
-                        onClick = { expandedDistance = !expandedDistance },
-                        modifier = modifier
-                    ) {
-                        Text(if (selectedDistance != "Distance") "< $selectedDistance km" else "Distance")
-                    }
-                    DropdownMenu(
-                        expanded = expandedDistance,
-                        onDismissRequest = { expandedDistance = false },
-                        modifier = modifier.fillMaxWidth()
-                    ) {
-                        for (distance in options) {
-                            DropdownMenuItem(
-                                onClick = {
-                                    radiusInKm = distance
-                                    expandedDistance = false
-                                    selectedDistance = distance.toString()
-                                },
-                                text = { Text("Within $distance km") }
-                            )
-                        }
-                        DropdownMenuItem(
-                            onClick = {
-                                selectedDistance = "Distance"
-                                radiusInKm = 100.0
-                                expandedDistance = false
-                            },
-                            text = {
-                                Row {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Remove"
-                                    )
-                                    Text("Remove filter(s)")
-                                }
-                            }
-                        )
-                    }
-                }
+//                Spacer(modifier = modifier)
+//                Column(
+//                    modifier = modifier
+//                        .padding(vertical = 10.dp),
+//                    horizontalAlignment = Alignment.CenterHorizontally
+//
+//                ) {
+//                    OutlinedButton(
+//                        onClick = { expandedDistance = !expandedDistance },
+//                        modifier = modifier
+//                    ) {
+//                        Text(if (selectedDistance != "Distance") "< $selectedDistance km" else "Distance")
+//                    }
+//                    DropdownMenu(
+//                        expanded = expandedDistance,
+//                        onDismissRequest = { expandedDistance = false },
+//                        modifier = modifier.fillMaxWidth()
+//                    ) {
+//                        for (distance in options) {
+//                            DropdownMenuItem(
+//                                onClick = {
+//                                    radiusInKm = distance
+//                                    expandedDistance = false
+//                                    selectedDistance = distance.toString()
+//                                },
+//                                text = { Text("Within $distance km") }
+//                            )
+//                        }
+//                        DropdownMenuItem(
+//                            onClick = {
+//                                selectedDistance = "Distance"
+//                                radiusInKm = 100.0
+//                                expandedDistance = false
+//                            },
+//                            text = {
+//                                Row {
+//                                    Icon(
+//                                        imageVector = Icons.Default.Close,
+//                                        contentDescription = "Remove"
+//                                    )
+//                                    Text("Remove filter(s)")
+//                                }
+//                            }
+//                        )
+//                    }
+//                }
             }
-
-
 
             LazyColumn(
                 modifier = modifier
-                    .padding(15.dp)
-                    .fillMaxSize()
+                    .padding(horizontal = 15.dp)
+                    .weight(1f)
+                    .fillMaxWidth()
             ) {
-                items(filteredItems.filter { appliance ->
-                    appliance.name.lowercase().contains(searchText.lowercase())
+                items(filterItemsByCategory(appliances, selectedCategory).filter { appliance ->
+                    appliance.name.lowercase().contains(
+                        searchText.lowercase()
+                    )
                 }) { appliance ->
                     ApplianceItemBox(context = context, appliance = appliance)
                 }
-                item {
+            }
 
-                    OutlinedButton(
-                        onClick = { navController.navigate("addAppliance") },
-                        modifier = modifier
-                            .padding(top = 15.dp)
-                            .fillMaxWidth()
-                            .align(Alignment.CenterHorizontally)
-                    ) {
-                        Row {
-                            Text("Add appliance")
-                            Spacer(modifier = modifier)
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Add symbol"
-                            )
-                        }
-                    }
-
+            OutlinedButton(
+                onClick = { navController.navigate("addAppliance") },
+                modifier = modifier
+                    .padding(15.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Row {
+                    Text("Add appliance")
+                    Spacer(modifier = modifier)
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add symbol"
+                    )
                 }
             }
         }
@@ -255,13 +212,14 @@ fun filterItemsByDistance(
     items: List<MyAppliance>,
     userLat: Double,
     userLon: Double,
-    radiusInKm: Double
+    radiusInKm: Double,
 ): List<MyAppliance> {
     return items.filter { item ->
         val distanceInMeters = calculateDistance(userLat, userLon, item.latitude, item.longitude)
         distanceInMeters <= radiusInKm * 1000 // Convert km to meters
     }
 }
+
 
 suspend fun getAddressFromLatLng(context: Context, latitude: Double, longitude: Double): String? {
     return withContext(Dispatchers.IO) {
@@ -284,7 +242,7 @@ suspend fun getAddressFromLatLng(context: Context, latitude: Double, longitude: 
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun ApplianceItemBox(appliance: MyAppliance, context: Context) {
+fun ApplianceItemBox(appliance: ApplianceDTO, context: Context) {
     val distance =
         calculateDistance(51.216962, 4.399859, appliance.latitude, appliance.longitude) / 1000
     var address by remember { mutableStateOf("loading...") }
