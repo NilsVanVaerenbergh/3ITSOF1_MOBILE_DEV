@@ -180,7 +180,7 @@ fun RentApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCon
                                 val userId = user?.uid ?: ""
                                 val success = rentalService.addRentalDateToAppliance(id, startDate,  endDate, userId)
                                 if (success) {
-                                    navController.navigate("rentalsOverview");
+                                    navController.navigate("myReservations");
                                 } else {
                                     Toast.makeText(context, "Failed to save rental dates", Toast.LENGTH_SHORT).show()
                                 }
