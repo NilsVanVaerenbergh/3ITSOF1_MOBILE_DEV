@@ -19,6 +19,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
+import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import java.io.File
 import java.util.Locale
@@ -31,6 +32,7 @@ fun OSM(
     longitude: Double = 0.0,
     zoomLevel: Double = 18.0,
     radius: Double = 0.0,
+    showRadius: Boolean = true,
     appliances: List<ApplianceDTO>,
     context: Context,
 ) {
@@ -66,6 +68,7 @@ fun OSM(
                 mapView,
                 GeoPoint(latitude, longitude),
                 radius,
+                showRadius,
                 appliances
             )
 
@@ -77,14 +80,17 @@ fun OSM(
         update = { mapView ->
             mapView.overlays.removeIf { it is Marker }
             mapView.overlays.removeIf { it is Polygon }
+            mapView.overlays.removeIf { it is Polyline }
 
             updateMapWithOverlays(
                 context,
                 mapView,
                 GeoPoint(latitude, longitude),
                 radius,
-                appliances
-            )
+                showRadius,
+                appliances,
+
+                )
 
 
             // Update map state if required
@@ -127,8 +133,15 @@ fun calculateBoundingBox(center: GeoPoint, radiusInMeters: Double): BoundingBox 
     return BoundingBox(north, east, south, west)
 }
 
-fun updateApplianceMarkers(context: Context, mapView: MapView, appliances: List<ApplianceDTO>) {
+fun updateApplianceMarkers(
+    center: GeoPoint,
+    context: Context,
+    mapView: MapView,
+    appliances: List<ApplianceDTO>,
+    showRadius: Boolean
+) {
     mapView.overlays.removeIf { it is Marker } // Clear previous markers
+    mapView.overlays.removeIf { it is Polyline } // Clear previous lines
 
     appliances.forEach { appliance ->
         val marker = Marker(mapView).apply {
@@ -142,7 +155,36 @@ fun updateApplianceMarkers(context: Context, mapView: MapView, appliances: List<
             }
         }
         mapView.overlays.add(marker)
+
+        if (!showRadius) {
+            drawLineToAppliance(
+                center,
+                GeoPoint(appliance.latitude, appliance.longitude),
+                mapView
+            )
+
+            val boundingBox = BoundingBox.fromGeoPoints(
+                listOf(
+                    center,
+                    GeoPoint(appliance.latitude, appliance.longitude)
+                )
+            )
+
+            mapView.zoomToBoundingBox(boundingBox, true, 50)
+        }
     }
+
+}
+
+fun drawLineToAppliance(center: GeoPoint, applianceLocation: GeoPoint, mapView: MapView) {
+    // Draw a line between the two markers
+    val polyline = Polyline(mapView).apply {
+        addPoint(center) // Start point
+        addPoint(applianceLocation) // End point
+        outlinePaint.color = Color.BLUE // Line color
+        outlinePaint.strokeWidth = 5f // Line width
+    }
+    mapView.overlays.add(polyline)
 }
 
 fun updateMapWithOverlays(
@@ -150,28 +192,27 @@ fun updateMapWithOverlays(
     mapView: MapView,
     center: GeoPoint,
     radius: Double,
+    showRadius: Boolean,
     appliances: List<ApplianceDTO>
 ) {
 
-    if (radius > 0.0){
+    if (radius > 0.0 || !showRadius) {
         // Remove existing circles
         mapView.overlays.removeIf { it is Polygon }
 
-        // Add radius circle
-        val circle = createRadiusCircle(center, radius, mapView)
-        mapView.overlays.add(circle)
+        if (showRadius) {
+            // Add radius circle
+            val circle = createRadiusCircle(center, radius, mapView)
+            mapView.overlays.add(circle)
 
-        // Calculate and apply bounding box to fit the circle
-        val boundingBox = calculateBoundingBox(center, radius * 1000.0) // Radius in meters
-        mapView.zoomToBoundingBox(boundingBox, true)
+            // Calculate and apply bounding box to fit the circle
+            val boundingBox = calculateBoundingBox(center, radius * 1000.0) // Radius in meters
+            mapView.zoomToBoundingBox(boundingBox, true)
+        }
 
         if (appliances.isNotEmpty()) {
-
             // Add markers for appliances
-            updateApplianceMarkers(context, mapView, appliances)
-            
-            // Refresh map
-            //mapView.invalidate()
+            updateApplianceMarkers(center, context, mapView, appliances, showRadius)
         }
     }
 }
