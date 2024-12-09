@@ -13,9 +13,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
@@ -225,7 +226,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                     },
                     modifier = modifier
                         .padding(vertical = paddingInBetween)
-                        .padding(bottom = 20.dp)
+                        .padding(bottom = 15.dp)
                         .fillMaxWidth()
                 ) {
                     Row {
@@ -241,15 +242,24 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
 
             item {
-                OSM(
+                Box(
                     modifier = modifier
-                        .padding(vertical = 50.dp)
-                        .height(100.dp),
-                    latitude = latitude,
-                    longitude = longitude,
-                    zoomLevel = 18.0,
-                    context = context,
-                )
+                        .aspectRatio(1.5f)
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(1.dp, Color.LightGray)
+                        .weight(1f)
+                        .fillMaxWidth()
+                ){
+                    OSM(
+                        modifier = modifier
+                            .padding(15.dp),
+                            //.height(100.dp),
+                        latitude = latitude,
+                        longitude = longitude,
+                        zoomLevel = 18.0,
+                        context = context,
+                    )
+                }
 
             }
 
@@ -305,20 +315,13 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                     modifier = modifier
                         .align(Alignment.CenterHorizontally)
                         .fillMaxWidth()
-                        .padding(top = 50.dp)
+                        .padding(top = 25.dp)
 
 
                 ) {
                     Text(text = "Add")
                 }
 
-            }
-
-            item {
-                OutlinedButton(onClick = { navController.navigate("myRentals") }
-                ) {
-                    Text("To rentals")
-                }
             }
         }
 

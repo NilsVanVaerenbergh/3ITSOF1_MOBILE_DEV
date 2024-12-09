@@ -110,7 +110,7 @@ fun EditLocationScreen(
             modifier = modifier
                 .aspectRatio(0.75f) // Adjust aspect ratio (e.g., 1:1 for a square map view)
                 .clip(RoundedCornerShape(8.dp))
-                .border(1.dp, Color.Black)
+                .border(1.dp, Color.LightGray)
                 .weight(1f)
                 .fillMaxWidth()
         ) {
