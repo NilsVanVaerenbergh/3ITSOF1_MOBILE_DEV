@@ -58,8 +58,8 @@ fun AppScreen() {
         "profile" to "Profile",
         "editUserName/{user}" to "Edit Username",
         "editLocation/{user}/{address}" to "Edit Location",
-        "rental/{id}" to "Rent appliance",
-        "rental/{id}/rent" to "Select dates"
+        "rental/{id}" to "Appliance overview",
+        "rental/{id}/rent" to "Rent appliance"
     )
     val showBottomBarRoutes = listOf(
         "home",
@@ -220,7 +220,7 @@ fun AppScreen() {
                 )
             }
             composable("myReservations") {
-                MyReservationsScreen()
+                MyReservationsScreen(navController = navController)
             }
 
             composable("rental/{id}") { backStackEntry ->

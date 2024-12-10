@@ -8,6 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -176,7 +177,7 @@ fun MyRentalsScreen(
                         searchText.lowercase()
                     )
                 }) { appliance ->
-                    ApplianceItemBox(context = context, appliance = appliance)
+                    ApplianceItemBox(context = context, appliance = appliance, navController = navController)
                 }
             }
 
@@ -242,7 +243,7 @@ suspend fun getAddressFromLatLng(context: Context, latitude: Double, longitude: 
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun ApplianceItemBox(appliance: ApplianceDTO, context: Context) {
+fun ApplianceItemBox(appliance: ApplianceDTO, context: Context, navController: NavHostController) {
     val distance =
         calculateDistance(51.216962, 4.399859, appliance.latitude, appliance.longitude) / 1000
     var address by remember { mutableStateOf("loading...") }
@@ -258,7 +259,9 @@ fun ApplianceItemBox(appliance: ApplianceDTO, context: Context) {
             .padding(8.dp)
             .background(Color.LightGray, shape = ShapeDefaults.Small)
             //.border(BorderStroke(1.dp, Color.Black), shape = ShapeDefaults.Small)
-            .padding(8.dp)
+            .padding(8.dp).clickable {
+                navController.navigate("rental/${appliance.id}")
+            },
 
 
     ) {

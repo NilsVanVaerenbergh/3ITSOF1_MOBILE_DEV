@@ -1,14 +1,20 @@
 package edu.ap.rentalapp.extensions
 
 import android.content.Context
+import android.location.Location
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import edu.ap.rentalapp.entities.Appliance
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.entities.ApplianceRentalDate
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 class RentalService(private val firestore: FirebaseFirestore = Firebase.firestore, private val context: Context) {
     suspend fun getListOfRentals(): List<Appliance> {
@@ -47,6 +53,7 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
                         latitude = appliance.latitude,
                         longitude = appliance.longitude,
                         name = appliance.name,
+                        pricePerDay = appliance.pricePerDay,
                         rentalDates = rentalDates,
                         userId = appliance.userId
                     )
@@ -148,7 +155,9 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
                     val startDate = doc.getDate("startDate") ?: return@mapNotNull null
                     val endDate = doc.getDate("endDate") ?: return@mapNotNull null
                     val rentedBy = doc.getString("rentedByUserId") ?: return@mapNotNull null
+                    val rentalId = doc.id;
                     ApplianceRentalDate(
+                        Id = rentalId,
                         applianceId = id,
                         startDate = startDate,
                         endDate = endDate,
@@ -173,7 +182,7 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
             applianceId = id,
             startDate = startDate,
             endDate = endDate,
-            rentedByUserId = userId
+            rentedByUserId = userId,
         )
         return try {
             rentalDateRef.set(rentalDate).await()
@@ -182,4 +191,39 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
             false
         }
     }
+
+    fun calculatePrice(startDate: String?, endDate: String?, price: Int): Int {
+        try {
+            if(startDate == null || endDate == null ) {
+                return  price
+            }
+            val dateFormat = SimpleDateFormat("d/MM/yyyy", Locale.getDefault())
+            return  (((dateFormat.parse(endDate).time - dateFormat.parse(startDate).time) / (1000 * 60 * 60 * 24)) * price).toInt()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return price
+        }
+    }
+
+    fun deleteAppliance(id: String): Flow<Result<Unit>> = callbackFlow {
+        firestore.collection("myAppliances").document(id).delete()
+            .addOnSuccessListener {
+                trySend(Result.success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                trySend(Result.failure(exception))
+            }
+        awaitClose()
+    }
+    fun deleteRentalDate(id: String): Flow<Result<Unit>> = callbackFlow {
+        firestore.collection("rentalDates").document(id).delete()
+            .addOnSuccessListener {
+                trySend(Result.success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                trySend(Result.failure(exception))
+            }
+        awaitClose()
+    }
+
 }

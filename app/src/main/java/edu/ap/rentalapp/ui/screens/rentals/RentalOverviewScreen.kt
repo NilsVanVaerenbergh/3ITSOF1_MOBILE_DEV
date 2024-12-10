@@ -477,7 +477,7 @@ fun CustomCard(appliance: ApplianceDTO, navController: NavHostController) {
                     .align(Alignment.CenterVertically)
             ) {
                 Text(
-                    text = "Today",
+                    text = "Price/day ${appliance.pricePerDay}€",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     modifier = Modifier.padding(bottom = 8.dp)

@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
@@ -54,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
@@ -88,6 +90,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedImages by remember { mutableStateOf(listOf<Uri>()) }
+    var pricePerDay by remember { mutableStateOf(0) }
     var expanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("Select Category") }
     val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
@@ -141,6 +144,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 )
             }
 
+
             item {
                 UploadImagesFromGallery(
                     images = selectedImages,
@@ -160,6 +164,15 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                         .padding(vertical = paddingInBetween)
                         .fillMaxWidth()
                 )
+            }
+
+            item {
+                OutlinedTextField(label = { Text(text = "Price per day") }, value = pricePerDay.toString(), onValueChange = { text ->
+                        val newValue = text.toIntOrNull()
+                        if (newValue != null) {
+                            pricePerDay = newValue
+                        }
+                    }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = ShapeDefaults.Small, modifier = modifier.fillMaxWidth())
             }
 
             item {
@@ -285,6 +298,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                 address = address,
                                 longitude = longitude,
                                 latitude = latitude,
+                                price = pricePerDay,
                                 userId = user?.uid.toString(),
                                 onSuccess = {
                                     loading = false
@@ -422,6 +436,7 @@ fun uploadApplianceToFirebase(
     address: String,
     longitude: Double,
     latitude: Double,
+    price: Int,
     userId: String,
     onSuccess: () -> Unit,
     onError: (Exception) -> Unit,
@@ -460,7 +475,8 @@ fun uploadApplianceToFirebase(
                 "address" to address,
                 "latitude" to latitude,
                 "longitude" to longitude,
-                "userId" to userId
+                "userId" to userId,
+                "pricePerDay" to price
 
             )
 
