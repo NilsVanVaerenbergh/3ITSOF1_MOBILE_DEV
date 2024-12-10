@@ -35,7 +35,7 @@ fun SharedTopAppBar(title: String, navController: NavController) {
         .build()
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    val noShowBackArrowScreens = listOf("home", "myReservations", "myRentals", "profile", "rental/{id}")
+    val noShowBackArrowScreens = listOf("home", "myReservations", "myRentals", "profile")
     val showBackArrow =
         navController.currentBackStackEntryAsState().value?.destination?.route !in noShowBackArrowScreens
 
