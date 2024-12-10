@@ -244,11 +244,8 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                     longitude = lon
                                 },
                             )
-                        }
-                        coroutineScope.launch {
-                            val addressFromLatLon =
-                                getAddressFromLatLng(context, latitude, longitude).toString()
-                            address = addressFromLatLon
+
+                            address = getAddressFromLatLng(context, latitude, longitude).toString()
                         }
 
                     },
@@ -295,7 +292,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             item {
                 val validLocation = address.isNotBlank() && longitude != 0.0 && latitude != 0.0
                 val isFormValid =
-                    name.isNotBlank() && description.isNotBlank() && selectedCategory.isNotEmpty() && selectedImages.isNotEmpty()
+                    name.isNotBlank() && description.isNotBlank() && selectedCategory.isNotEmpty() && selectedImages.isNotEmpty() && pricePerDay > 0
                 Button(
                     onClick = {
                         if (isFormValid && validLocation) {
