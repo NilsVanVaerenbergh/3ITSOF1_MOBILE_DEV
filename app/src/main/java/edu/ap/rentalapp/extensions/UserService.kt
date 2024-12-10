@@ -7,9 +7,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import edu.ap.rentalapp.R
+import edu.ap.rentalapp.entities.Appliance
+import edu.ap.rentalapp.entities.User
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 
 class UserService(private val firestore: FirebaseFirestore = Firebase.firestore, private val context: Context) {
 
@@ -47,6 +50,19 @@ class UserService(private val firestore: FirebaseFirestore = Firebase.firestore,
                 trySend(Result.failure(exception))
             }
         awaitClose()
+    }
+    suspend fun getUserByIdSuspended(id: String): User? {
+        return try {
+            val documentSnapshot = firestore.collection("users").document(id).get().await()
+            if (documentSnapshot.exists()) {
+                documentSnapshot.toObject(User::class.java)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
 }

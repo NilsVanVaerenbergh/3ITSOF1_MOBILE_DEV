@@ -1,6 +1,7 @@
 package edu.ap.rentalapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,14 +21,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
 import kotlinx.coroutines.launch
 
 @Composable
-fun MyReservationsScreen(modifier: Modifier = Modifier) {
-    // State to hold rentals
+fun MyReservationsScreen(modifier: Modifier = Modifier,
+                         navController: NavHostController) {
     val rentalsState = remember { mutableStateOf<List<ApplianceDTO>>(emptyList()) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -36,16 +38,13 @@ fun MyReservationsScreen(modifier: Modifier = Modifier) {
     val authenticationManager = remember { AuthenticationManager(context) }
     val user = authenticationManager.auth.currentUser
     val userId = user?.uid ?: ""
-    // Load rentals when the screen is shown
     LaunchedEffect(userId) {
         coroutineScope.launch {
-            // Replace with the actual call to getRentalsByUserId
             val rentals = rentalService.getRentalsByUserId(userId)
             rentalsState.value = rentals
         }
     }
 
-    // Display the list of rentals
     if (rentalsState.value.isEmpty()) {
         Box(
             modifier = modifier.fillMaxSize(),
@@ -56,20 +55,22 @@ fun MyReservationsScreen(modifier: Modifier = Modifier) {
     } else {
         LazyColumn(modifier = modifier.fillMaxSize()) {
             items(rentalsState.value) { rental ->
-                RentalItem(rental = rental)
+                RentalItem(rental = rental, navController = navController)
             }
         }
     }
 }
 
 @Composable
-fun RentalItem(rental: ApplianceDTO) {
+fun RentalItem(rental: ApplianceDTO, navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
             .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
-            .padding(16.dp)
+            .padding(16.dp).clickable {
+                navController.navigate("rental/${rental.id}")
+            }
     ) {
         Text(text = "Appliance: ${rental.name ?: "Unknown"}", style = MaterialTheme.typography.titleMedium)
         Text(text = "Rental Dates:", style = MaterialTheme.typography.titleSmall)
