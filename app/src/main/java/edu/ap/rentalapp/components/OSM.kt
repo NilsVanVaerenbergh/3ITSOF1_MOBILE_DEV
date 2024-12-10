@@ -185,7 +185,6 @@ fun updateApplianceMarkers(
             val screenWidth = mapView.width
             val screenHeight = mapView.height
             val maxPadding = minOf(screenWidth, screenHeight) / 4 // Limit padding to 1/4 of screen size
-
             val safePadding = minOf(50, maxPadding) // Ensure padding is not excessive
 
             // Adding borderpixels 50 at the end keeps crashing the app
@@ -240,36 +239,38 @@ fun updateMapWithOverlays(
 }
 
 
-fun findGeoLocationFromAddress(
+suspend fun findGeoLocationFromAddress(
     address: String,
     assignLat: (latitude: Double) -> Unit,
     assignLon: (longitude: Double) -> Unit,
     context: Context
 ) {
-    if (address.isNotBlank()) {
-        val geocoder = Geocoder(context, Locale.getDefault())
-        try {
-            val results = geocoder.getFromLocationName(address, 1)
-            if (results != null) {
-                if (results.isNotEmpty()) {
-                    val location = results[0]
-                    assignLat(location.latitude)
-                    assignLon(location.longitude)
-                } else {
-                    Toast.makeText(
-                        context,
-                        "Location not found",
-                        Toast.LENGTH_SHORT
-                    ).show()
+    return withContext(Dispatchers.IO){
+        if (address.isNotBlank()) {
+            val geocoder = Geocoder(context, Locale.getDefault())
+            try {
+                val results = geocoder.getFromLocationName(address, 1)
+                if (results != null) {
+                    if (results.isNotEmpty()) {
+                        val location = results[0]
+                        assignLat(location.latitude)
+                        assignLon(location.longitude)
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Location not found",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
-            }
 
-        } catch (e: Exception) {
-            Toast.makeText(
-                context,
-                "Error: ${e.localizedMessage}",
-                Toast.LENGTH_SHORT
-            ).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Error: ${e.localizedMessage}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
     }
 }

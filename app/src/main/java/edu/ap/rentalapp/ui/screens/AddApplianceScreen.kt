@@ -167,12 +167,19 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             }
 
             item {
-                OutlinedTextField(label = { Text(text = "Price per day") }, value = pricePerDay.toString(), onValueChange = { text ->
+                OutlinedTextField(
+                    label = { Text(text = "Price per day") },
+                    value = pricePerDay.toString(),
+                    onValueChange = { text ->
                         val newValue = text.toIntOrNull()
                         if (newValue != null) {
                             pricePerDay = newValue
                         }
-                    }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), shape = ShapeDefaults.Small, modifier = modifier.fillMaxWidth())
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = ShapeDefaults.Small,
+                    modifier = modifier.fillMaxWidth()
+                )
             }
 
             item {
@@ -226,18 +233,21 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             item {
                 Button(
                     onClick = {
-                        findGeoLocationFromAddress(
-                            address = address,
-                            context = context,
-                            assignLat = { lat ->
-                                latitude = lat
-                            },
-                            assignLon = { lon ->
-                                longitude = lon
-                            },
-                        )
                         coroutineScope.launch {
-                            val addressFromLatLon = getAddressFromLatLng(context, latitude, longitude).toString()
+                            findGeoLocationFromAddress(
+                                address = address,
+                                context = context,
+                                assignLat = { lat ->
+                                    latitude = lat
+                                },
+                                assignLon = { lon ->
+                                    longitude = lon
+                                },
+                            )
+                        }
+                        coroutineScope.launch {
+                            val addressFromLatLon =
+                                getAddressFromLatLng(context, latitude, longitude).toString()
                             address = addressFromLatLon
                         }
 
@@ -267,11 +277,11 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                         .border(1.dp, Color.LightGray)
                         .weight(1f)
                         .fillMaxWidth()
-                ){
+                ) {
                     OSM(
                         modifier = modifier
                             .padding(15.dp),
-                            //.height(100.dp),
+                        //.height(100.dp),
                         latitude = latitude,
                         longitude = longitude,
                         zoomLevel = 18.0,

@@ -80,16 +80,20 @@ fun EditLocationScreen(
 
         Button(
             onClick = {
-                findGeoLocationFromAddress(
-                    address = address,
-                    context = context,
-                    assignLat = { lat ->
-                        latitude = lat
-                    },
-                    assignLon = { lon ->
-                        longitude = lon
-                    },
-                )
+                coroutineScope.launch {
+                    findGeoLocationFromAddress(
+                        address = address,
+                        context = context,
+                        assignLat = { lat ->
+                            latitude = lat
+                        },
+                        assignLon = { lon ->
+                            longitude = lon
+                        },
+                    )
+
+                    address = getAddressFromLatLng(context, latitude, longitude).toString()
+                }
 
             },
             modifier = modifier
@@ -135,7 +139,13 @@ fun EditLocationScreen(
                 isSaving = true
                 coroutineScope.launch {
                     if (user != null) {
-                        updateUserLocation(context, user.userId, latitude, longitude, coroutineScope)
+                        updateUserLocation(
+                            context,
+                            user.userId,
+                            latitude,
+                            longitude,
+                            coroutineScope
+                        )
                         navController.popBackStack()
                     } else {
                         Toast.makeText(context, "An error occured while saving", Toast.LENGTH_SHORT)
@@ -152,7 +162,13 @@ fun EditLocationScreen(
 
 }
 
-fun updateUserLocation(context: Context, userId: String, newLat: Double, newLon: Double, coroutineScope: CoroutineScope) {
+fun updateUserLocation(
+    context: Context,
+    userId: String,
+    newLat: Double,
+    newLon: Double,
+    coroutineScope: CoroutineScope
+) {
 
     val db = FirebaseFirestore.getInstance()
     val userRef = db.collection("users").document(userId)
