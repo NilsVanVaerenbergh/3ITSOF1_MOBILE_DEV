@@ -169,6 +169,18 @@ fun RentApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCon
             }
 
             Spacer(modifier = Modifier.height(paddingInBetween))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Current total price:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "${rentalService.calculatePrice(startDate, endDate, appliance!!.pricePerDay)} €",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+            }
             Button(
 
                 onClick = {

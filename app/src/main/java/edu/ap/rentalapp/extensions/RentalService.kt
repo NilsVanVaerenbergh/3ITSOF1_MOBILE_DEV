@@ -8,7 +8,9 @@ import edu.ap.rentalapp.entities.Appliance
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.entities.ApplianceRentalDate
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 class RentalService(private val firestore: FirebaseFirestore = Firebase.firestore, private val context: Context) {
     suspend fun getListOfRentals(): List<Appliance> {
@@ -181,6 +183,19 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
             true
         } catch (e: Exception) {
             false
+        }
+    }
+
+    fun calculatePrice(startDate: String?, endDate: String?, price: Int): Int {
+        try {
+            if(startDate == null || endDate == null ) {
+                return  price
+            }
+            val dateFormat = SimpleDateFormat("d/MM/yyyy", Locale.getDefault())
+            return  (((dateFormat.parse(endDate).time - dateFormat.parse(startDate).time) / (1000 * 60 * 60 * 24)) * price).toInt()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return price
         }
     }
 }
