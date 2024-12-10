@@ -72,12 +72,13 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
             for (rentalDoc in rentalQuerySnapshot.documents) {
                 val startDate = rentalDoc.getDate("startDate")
                 val endDate = rentalDoc.getDate("endDate")
-
-                if (startDate != null && endDate != null) {
+                val rentedBy =  rentalDoc.getString("rentedByUserId")
+                if (startDate != null && endDate != null && rentedBy != null) {
                     val rentalDate = ApplianceRentalDate(
                         applianceId = applianceId,
                         startDate = startDate,
-                        endDate = endDate
+                        endDate = endDate,
+                        rentedByUserId = rentedBy
                     )
                     rentalDates.add(rentalDate)
                 }
@@ -86,6 +87,39 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
             e.printStackTrace()
         }
         return rentalDates
+    }
+
+    suspend fun getRentalsByUserId(userId: String): List<ApplianceDTO> {
+        return try {
+            val rentalDatesSnapshot = firestore.collection("rentalDates")
+                .whereEqualTo("rentedByUserId", userId)
+                .get().await()
+
+            rentalDatesSnapshot.documents.mapNotNull { rentalDoc ->
+                val applianceId = rentalDoc.getString("applianceId") ?: return@mapNotNull null
+                val startDate = rentalDoc.getDate("startDate") ?: return@mapNotNull null
+                val endDate = rentalDoc.getDate("endDate") ?: return@mapNotNull null
+
+                val applianceSnapshot = firestore.collection("myAppliances").document(applianceId).get().await()
+                if (applianceSnapshot.exists()) {
+                    val appliance = applianceSnapshot.toObject(ApplianceDTO::class.java) ?: return@mapNotNull null
+                    appliance.rentalDates = listOf(
+                        ApplianceRentalDate(
+                            applianceId = applianceId,
+                            startDate = startDate,
+                            endDate = endDate,
+                            rentedByUserId = userId
+                        )
+                    )
+                    appliance
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
 
     suspend fun getRentalById(id: String): Appliance? {
@@ -113,10 +147,12 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
                 val rentalDates = rentalDatesSnapshot.documents.mapNotNull { doc ->
                     val startDate = doc.getDate("startDate") ?: return@mapNotNull null
                     val endDate = doc.getDate("endDate") ?: return@mapNotNull null
+                    val rentedBy = doc.getString("rentedByUserId") ?: return@mapNotNull null
                     ApplianceRentalDate(
                         applianceId = id,
                         startDate = startDate,
-                        endDate = endDate
+                        endDate = endDate,
+                        rentedByUserId = rentedBy
                     )
                 }
                 appliance?.rentalDates = rentalDates
@@ -130,13 +166,14 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
         }
 
     }
-    suspend fun addRentalDateToAppliance(id: String, startDate: Date, endDate: Date): Boolean {
+    suspend fun addRentalDateToAppliance(id: String, startDate: Date, endDate: Date, userId: String): Boolean {
         val db = FirebaseFirestore.getInstance()
         val rentalDateRef = db.collection("rentalDates").document()
         val rentalDate = ApplianceRentalDate(
             applianceId = id,
             startDate = startDate,
-            endDate = endDate
+            endDate = endDate,
+            rentedByUserId = userId
         )
         return try {
             rentalDateRef.set(rentalDate).await()
@@ -145,5 +182,4 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
             false
         }
     }
-
 }

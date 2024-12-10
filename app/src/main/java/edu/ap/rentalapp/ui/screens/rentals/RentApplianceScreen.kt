@@ -148,7 +148,8 @@ fun RentApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCon
                             val startDate = dateFormat.parse(startDate)
                             val endDate = dateFormat.parse(endDate)
                             coroutineScope.launch {
-                                val success = rentalService.addRentalDateToAppliance(id, startDate,  endDate)
+                                val userId = user?.uid ?: ""
+                                val success = rentalService.addRentalDateToAppliance(id, startDate,  endDate, userId)
                                 if (success) {
                                     Toast.makeText(context, "Rental dates saved successfully", Toast.LENGTH_SHORT).show()
                                     navController.navigate("rentalsOverview");

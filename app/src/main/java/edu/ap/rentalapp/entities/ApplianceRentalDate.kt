@@ -5,7 +5,8 @@ import java.util.Date
 data class ApplianceRentalDate(
     val applianceId: String,
     val startDate: Date,
-    val endDate: Date
+    val endDate: Date,
+    val rentedByUserId: String
 ) {
-    constructor() : this("", Date(), Date())
+    constructor() : this("", Date(), Date(), "")
 }
