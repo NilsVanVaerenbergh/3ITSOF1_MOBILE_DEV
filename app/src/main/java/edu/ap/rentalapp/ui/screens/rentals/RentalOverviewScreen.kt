@@ -77,7 +77,6 @@ import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController) {
 
@@ -138,6 +137,7 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
         }
         coroutineScope.launch {
             fetchRentals(userId, rentalService, rentalList, loading)
+
         }
     }
 
@@ -195,13 +195,15 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                         contentDescription = "Search icon"
                     )
                 },
+                enabled = !loading.value,
                 modifier = modifier
                     //.fillMaxWidth()
                     .padding(15.dp)
             )
             Column {
                 CategorySelect(
-                    setCategory = { selectedCategory = it }
+                    setCategory = { selectedCategory = it },
+                    enabled = !loading.value
                 )
             }
         }
@@ -272,7 +274,7 @@ fun filterAppliances(
     }
 
     return filteredByText.filter { appliance ->
-        Log.d("location", "filterAppliancesByRadius: ${appliance.name}")
+        //Log.d("location", "filterAppliancesByRadius: ${appliance.name}")
         calculateDistance(
             userData!!.lat.toDouble(),
             userData.lon.toDouble(),
