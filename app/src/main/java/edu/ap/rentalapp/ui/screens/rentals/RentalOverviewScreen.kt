@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BasicAlertDialog
@@ -31,7 +30,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
@@ -76,6 +74,7 @@ import edu.ap.rentalapp.ui.theme.Purple40
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.osmdroid.util.GeoPoint
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,8 +93,7 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
     var radiusInKm by remember { mutableDoubleStateOf(0.0) } // Default to 0km
-    var maxRadius by remember { mutableDoubleStateOf(30.0) } // Default max radius to 30km
-
+    var maxRadius by remember { mutableDoubleStateOf(5.0) } // Default max radius to 5km
 
     val rentalService = RentalServiceSingleton.getInstance(context)
     val rentalList = remember { mutableStateOf<List<ApplianceDTO>>(emptyList()) }
@@ -233,16 +231,22 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                         ) {
                             if (filteredAppliances.isNotEmpty()) {
                                 items(filteredAppliances) { appliance ->
-                                    CustomCard(appliance, navController)
+                                    CustomCard(
+                                        GeoPoint(
+                                            userData!!.lat.toDouble(),
+                                            userData!!.lon.toDouble()
+                                        ), appliance, navController
+                                    )
                                 }
-                            }
-                            else{
-                                item{ Text(
-                                    text = "Nothing found",
-                                    modifier = modifier
-                                        .padding(20.dp)
-                                        .align(Alignment.CenterHorizontally)
-                                ) }
+                            } else {
+                                item {
+                                    Text(
+                                        text = "Nothing found",
+                                        modifier = modifier
+                                            .padding(20.dp)
+                                            .align(Alignment.CenterHorizontally)
+                                    )
+                                }
                             }
                         }
                     }
@@ -419,8 +423,16 @@ suspend fun fetchRentals(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
-fun CustomCard(appliance: ApplianceDTO, navController: NavHostController) {
+fun CustomCard(homeLocation: GeoPoint, appliance: ApplianceDTO, navController: NavHostController) {
+
+    val distance = calculateDistance(
+        homeLocation.latitude,
+        homeLocation.longitude,
+        appliance.latitude,
+        appliance.longitude
+    ) / 1000
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -477,21 +489,17 @@ fun CustomCard(appliance: ApplianceDTO, navController: NavHostController) {
                     .align(Alignment.CenterVertically)
             ) {
                 Text(
-                    text = "Price/day ${appliance.pricePerDay}€",
+                    text = "~${String.format(" % .2f", distance)} km",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
+                    color = Color.Black,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                IconButton(
-                    onClick = { /* Handle button click */ },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add",
-                        tint = Color.Black
-                    )
-                }
+                Text(
+                    text = "€${appliance.pricePerDay}/day",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
         }
     }

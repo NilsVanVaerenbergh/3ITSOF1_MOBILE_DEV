@@ -233,7 +233,6 @@ fun AppScreen() {
             composable("rental/{id}/rent") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id") ?: ""
                 RentApplianceScreen(
-                    modifier = Modifier.padding(innerPadding),
                     navController = navController, id = id
                 )
             }

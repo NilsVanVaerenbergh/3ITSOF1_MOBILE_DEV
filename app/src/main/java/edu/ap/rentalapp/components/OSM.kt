@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
@@ -157,6 +158,8 @@ fun updateApplianceMarkers(
         mapView.overlays.add(marker)
 
         if (!showRadius) {
+            mapView.overlays.removeIf { it is RotationGestureOverlay } // Remove rotation
+
             drawLineToAppliance(
                 center,
                 GeoPoint(appliance.latitude, appliance.longitude),
@@ -172,14 +175,24 @@ fun updateApplianceMarkers(
 
             // Extend the BoundingBox so you can also see both markers entirely
             val extendedBoundingBox = BoundingBox(
-                boundingBox.latNorth + 0.01, // Add latitude padding
-                boundingBox.lonEast + 0.01, // Add longitude padding
-                boundingBox.latSouth - 0.01, // Subtract latitude padding
-                boundingBox.lonWest - 0.01  // Subtract longitude padding
+                boundingBox.latNorth + 0.002, // Add latitude padding
+                boundingBox.lonEast + 0.002, // Add longitude padding
+                boundingBox.latSouth - 0.002, // Subtract latitude padding
+                boundingBox.lonWest - 0.002  // Subtract longitude padding
             )
 
-            // Adding borderpixels at the end keeps crashing the app
+            // If you want padding
+            val screenWidth = mapView.width
+            val screenHeight = mapView.height
+            val maxPadding = minOf(screenWidth, screenHeight) / 4 // Limit padding to 1/4 of screen size
+
+            val safePadding = minOf(50, maxPadding) // Ensure padding is not excessive
+
+            // Adding borderpixels 50 at the end keeps crashing the app
             mapView.zoomToBoundingBox(extendedBoundingBox, true)
+            mapView.setScrollableAreaLimitDouble(extendedBoundingBox)
+            mapView.setMultiTouchControls(false)
+            mapView.zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
         }
     }
 
