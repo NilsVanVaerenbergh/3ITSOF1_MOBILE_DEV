@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,18 +28,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -53,8 +60,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,7 +82,8 @@ import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.RentalService
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
-import edu.ap.rentalapp.ui.theme.Purple40
+import edu.ap.rentalapp.ui.theme.Green
+import edu.ap.rentalapp.ui.theme.LightGrey
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -93,8 +104,8 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     var address by remember { mutableStateOf("") }
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
-    var radiusInKm by remember { mutableDoubleStateOf(0.0) } // Default to 0km
-    var maxRadius by remember { mutableDoubleStateOf(30.0) } // Default max radius to 30km
+    var radiusInKm by remember { mutableDoubleStateOf(0.0) }
+    var maxRadius by remember { mutableDoubleStateOf(30.0) }
 
 
     val rentalService = RentalServiceSingleton.getInstance(context)
@@ -113,13 +124,8 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
         )
     }
 
-    //val filteredItems = filterItemsByDistance(rentalList, 51.216962, 4.399859, radiusInKm)
-
-    // Get the CoroutineScope for launching coroutines
     val coroutineScope = rememberCoroutineScope()
 
-
-    // Fetch rentals when the composable is launched
     LaunchedEffect(user) {
         if (user != null) {
             userService.getUserByUserId(userId).onEach { result ->
@@ -127,13 +133,9 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                     val document = result.getOrNull()
                     if (document != null && document.exists()) {
                         userData = document.toObject(User::class.java)
-                        //Log.d("FIRESTORE", "AddApplianceScreen: $userData")
-
                         latitude = userData?.lat?.toDouble() ?: 0.0
                         longitude = userData?.lon?.toDouble() ?: 0.0
-
                         address = getAddressFromLatLng(context, latitude, longitude).toString()
-
                     }
                 }
             }.launchIn(coroutineScope)
@@ -175,31 +177,39 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
             onMaxRadiusChange = { maxRadius = it }
         )
 
-//        RadiusSliderWithPopup(
-//            radiusInKm,
-//            onRadiusChange = { radiusInKm = it }
-//        )
-//
-//        SliderWithCustomTrackAndThumb()
-
         Row(
             modifier = modifier.fillMaxWidth()
         ) {
             OutlinedTextField(
                 value = searchText,
-                onValueChange = { text ->
-                    searchText = text
+                onValueChange = { text -> searchText = text },
+                placeholder = {
+                    Text(
+                        "Search...",
+                        textAlign = TextAlign.Start,
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 },
-                placeholder = { Text("Search...") },
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search icon"
+                        contentDescription = "Search icon",
+                        tint = MaterialTheme.colorScheme.secondary
                     )
                 },
-                modifier = modifier
-                    //.fillMaxWidth()
-                    .padding(15.dp)
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Search
+                ),
+                shape = RoundedCornerShape(99.dp),
+                modifier = modifier.padding(horizontal = 8.dp, vertical = 3.dp).height(46.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,          // No border when focused
+                    unfocusedIndicatorColor = Color.Transparent,        // No border when unfocused
+                    disabledIndicatorColor = Color.Transparent,         // No border when disabled
+                    focusedContainerColor = LightGrey.copy(0.4f), // Background color when focused
+                    unfocusedContainerColor = LightGrey.copy(0.4f), // Background color when unfocused
+                    cursorColor = MaterialTheme.colorScheme.primary                              // Cursor color
+                ),
             )
             Column {
                 CategorySelect(
@@ -217,39 +227,67 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
             }
         ) {
             Column(modifier = modifier.fillMaxWidth()) {
-                if (loading.value) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                } else {
-                    if (rentalList.value.isEmpty()) {
+                if (rentalList.value.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth() // Ensures the Column takes up the full width
+                            .fillMaxHeight(),
+                        verticalArrangement = Arrangement.Center, // Centers content vertically
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SentimentVeryDissatisfied,
+                            contentDescription = "Sad",
+                            tint = Color.Gray.copy(0.6f)
+                        )
                         Text(
                             text = "No rentals available",
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                    } else {
-                        LazyColumn(
                             modifier = modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                        ) {
-                            if (filteredAppliances.isNotEmpty()) {
-                                items(filteredAppliances) { appliance ->
-                                    CustomCard(appliance, navController)
-                                }
+                                .padding(20.dp)
+                                .align(Alignment.CenterHorizontally),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray.copy(0.6f)
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        if (filteredAppliances.isNotEmpty()) {
+                            items(filteredAppliances) { appliance ->
+                                CustomCard(appliance, navController)
                             }
-                            else{
-                                item{ Text(
-                                    text = "Nothing found",
-                                    modifier = modifier
-                                        .padding(20.dp)
-                                        .align(Alignment.CenterHorizontally)
-                                ) }
+                        } else {
+                            item {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth() // Ensures the Column takes up the full width
+                                        .fillParentMaxHeight(),
+                                    verticalArrangement = Arrangement.Center, // Centers content vertically
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.SentimentVeryDissatisfied,
+                                        contentDescription = "Sad",
+                                        tint = Color.Gray.copy(0.6f)
+                                    )
+                                    Text(
+                                        text = "Nothing found",
+                                        modifier = modifier
+                                            .padding(20.dp)
+                                            .align(Alignment.CenterHorizontally),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color.Gray.copy(0.6f)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
     }
 }
 
@@ -307,6 +345,7 @@ fun RadiusSlider(
         Text(
             text = "Radius: ${String.format(" % .1f", radius)} km",
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.tertiary
             //modifier = Modifier.padding(bottom = 4.dp)
         )
 
@@ -319,6 +358,7 @@ fun RadiusSlider(
             // Minimum label
             Text(
                 text = "${minRadius.toInt()} km",
+                color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(end = 8.dp)
             )
@@ -336,18 +376,18 @@ fun RadiusSlider(
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = "Location icon",
-                        tint = Purple40,
-                        //modifier = Modifier.size(30.dp)
+                        tint = Green,
                     )
                 },
+                colors = SliderDefaults.colors(activeTrackColor = Green),
                 steps = ((maxRadius - minRadius) / stepSize).toInt() - 1,
-                modifier = Modifier.weight(1f) // Slider takes remaining space
+                modifier = Modifier.weight(1f)
             )
 
-            // Maximum label
             Text(
                 text = "${maxRadius.toInt()} km",
                 style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .clickable { showDialog = true }

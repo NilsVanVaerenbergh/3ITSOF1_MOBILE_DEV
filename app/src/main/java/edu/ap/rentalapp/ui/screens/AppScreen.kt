@@ -53,11 +53,11 @@ fun AppScreen() {
     val showTopBarRoutes = mapOf(
         "home" to "Home",
         "myReservations" to "Reservations",
-        "myRentals" to "My Rentals",
+        "myRentals" to "My rentals",
         "addAppliance" to "Add appliance",
         "profile" to "Profile",
-        "editUserName/{user}" to "Edit Username",
-        "editLocation/{user}/{address}" to "Edit Location",
+        "editUserName/{user}" to "Edit username",
+        "editLocation/{user}/{address}" to "Edit location",
         "rental/{id}" to "Appliance overview",
         "rental/{id}/rent" to "Rent appliance"
     )

@@ -112,9 +112,8 @@ fun OSM(
 fun createRadiusCircle(center: GeoPoint, radius: Double, mapView: MapView): Polygon {
     val circle = Polygon(mapView)
     circle.points = Polygon.pointsAsCircle(center, radius * 1000.0) // Radius in meters
-    circle.fillPaint.color =
-        0x20FF0000 // Transparent red // Color.argb(50, 0, 0, 255) // Transparent blue
-    circle.outlinePaint.color = Color.RED
+    circle.fillPaint.color = 0x200DA52E // Transparent red // Color.argb(50, 0, 0, 255) // Transparent blue
+    circle.outlinePaint.color = 0xFF3CAF48.toInt()
     circle.fillPaint.strokeWidth = 2f
     return circle
 }

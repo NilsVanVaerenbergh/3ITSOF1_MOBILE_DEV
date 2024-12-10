@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
@@ -31,6 +33,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +48,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,28 +90,35 @@ fun MyRentalsScreen(
         if (isLoading.value) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
-            OutlinedTextField(
-                value = searchText,
-                onValueChange = { text ->
-                    searchText = text
-                },
-                placeholder = { Text("Search...") },
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search icon"
-                    )
-                },
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(15.dp)
-            )
-
-
             Row(
                 modifier = modifier,
                 horizontalArrangement = Arrangement.Center
             ) {
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = { text -> searchText = text },
+                    placeholder = { Text("Search...", textAlign = TextAlign.Start, style = MaterialTheme.typography.bodySmall) },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search icon",
+                            tint = Color.Gray
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Search
+                    ),
+                    shape = RoundedCornerShape(99.dp),
+                    modifier = modifier.padding(horizontal = 8.dp, vertical = 3.dp).height(46.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,          // No border when focused
+                        unfocusedIndicatorColor = Color.Transparent,        // No border when unfocused
+                        disabledIndicatorColor = Color.Transparent,         // No border when disabled
+                        focusedContainerColor = Color.LightGray.copy(0.5f), // Background color when focused
+                        unfocusedContainerColor = Color.LightGray.copy(0.5f), // Background color when unfocused
+                        cursorColor = Color.Green                                // Cursor color
+                    ),
+                )
                 Column(
                     modifier = modifier
                         .padding(horizontal = 15.dp)

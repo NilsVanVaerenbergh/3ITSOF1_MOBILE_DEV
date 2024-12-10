@@ -24,7 +24,7 @@ import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import com.google.firebase.auth.FirebaseAuth
-import edu.ap.rentalapp.ui.theme.Purple40
+import edu.ap.rentalapp.ui.theme.DarkGrey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +41,7 @@ fun SharedTopAppBar(title: String, navController: NavController) {
 
 
     TopAppBar(
-        title = { Text(text = title, color = Color.Black) },
+        title = { Text(text = title, color = Color.White) },
         navigationIcon = {
             if (showBackArrow) {
                 IconButton(onClick = { navController.popBackStack() }) {
@@ -62,7 +62,7 @@ fun SharedTopAppBar(title: String, navController: NavController) {
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Purple40
+            containerColor = DarkGrey
         )
     )
 }
