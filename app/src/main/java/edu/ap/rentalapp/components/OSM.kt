@@ -170,7 +170,16 @@ fun updateApplianceMarkers(
                 )
             )
 
-            mapView.zoomToBoundingBox(boundingBox, true, 50)
+            // Extend the BoundingBox so you can also see both markers entirely
+            val extendedBoundingBox = BoundingBox(
+                boundingBox.latNorth + 0.01, // Add latitude padding
+                boundingBox.lonEast + 0.01, // Add longitude padding
+                boundingBox.latSouth - 0.01, // Subtract latitude padding
+                boundingBox.lonWest - 0.01  // Subtract longitude padding
+            )
+
+            // Adding borderpixels at the end keeps crashing the app
+            mapView.zoomToBoundingBox(extendedBoundingBox, true)
         }
     }
 
