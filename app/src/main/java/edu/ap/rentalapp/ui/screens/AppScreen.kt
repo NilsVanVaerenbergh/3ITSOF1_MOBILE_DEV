@@ -66,7 +66,6 @@ fun AppScreen() {
         "myReservations",
         "myRentals",
         "profile",
-        "rental/{id}"
     )
     val bottomNavItems = listOf(
         BottomNavItem("Home", Icons.Outlined.Home, "home"),
@@ -182,7 +181,7 @@ fun AppScreen() {
                 EditUserNameScreen(
                     context = context,
                     navController = navController,
-                    userData = user
+                    user = user
                 )
             }
             composable(
@@ -233,7 +232,6 @@ fun AppScreen() {
             composable("rental/{id}/rent") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id") ?: ""
                 RentApplianceScreen(
-                    modifier = Modifier.padding(innerPadding),
                     navController = navController, id = id
                 )
             }
