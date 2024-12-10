@@ -1,5 +1,6 @@
 package edu.ap.rentalapp.ui.screens.rentals
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,8 +36,13 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import edu.ap.rentalapp.entities.Appliance
+import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class)
@@ -54,7 +60,7 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
 
     val coroutineScope = rememberCoroutineScope()
 
-    var appliance by remember { mutableStateOf<Appliance?>(null) }
+    var appliance by remember { mutableStateOf<ApplianceDTO?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(id) {
@@ -62,7 +68,7 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
             try {
                 isLoading = true
 
-                appliance = rentalService.getRentalById(id)
+                appliance = rentalService.getRentalAndDatesById(id)
             } catch (e: Exception) {
                 navController.navigate("rentalsOverview")
                 appliance = null
@@ -151,12 +157,72 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-            Button(
-                onClick = {
-                    navController.navigate("rental/${id}/rent")
+            if (user!!.uid.toString() == appliance!!.userId) {
+                Button(
+                    onClick = {
+                        if (appliance!!.rentalDates.isEmpty()) {
+                            rentalService.deleteAppliance(appliance!!.id).onEach { response ->
+                                if (response.isSuccess) {
+                                    Toast.makeText(
+                                        context,
+                                        "Succesfully deleted",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                    navController.navigate("myRentals")
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Failed to delete. Try again later",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }.launchIn(coroutineScope)
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "You cannot delete this appliance as someone is renting it",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                ) { Text(text = "Delete appliance") }
+            } else if (!appliance!!.rentalDates.isEmpty() && appliance!!.rentalDates[0].rentedByUserId == user!!.uid.toString()) {
+                Button(
+                    onClick = {
+                        Toast.makeText(
+                            context,
+                            appliance!!.rentalDates[0].Id,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        rentalService.deleteRentalDate(appliance!!.rentalDates[0].Id)
+                            .onEach { response ->
+                                if (response.isSuccess) {
+                                    Toast.makeText(
+                                        context,
+                                        "Succesfully cancelled renting",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+
+                                    navController.navigate("myReservations")
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Failed to delete. Try again later",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }.launchIn(coroutineScope)
+                    }
+                ) { Text(text = "Cancel renting") }
+            } else {
+                Button(
+                    onClick = {
+                        navController.navigate("rental/${id}/rent")
+                    }
+                ) {
+                    Text(text = "Choose dates")
                 }
-            ) {
-                Text(text = "Rent")
             }
         }
     }

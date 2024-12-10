@@ -13,7 +13,7 @@ data class ApplianceDTO(
     var pricePerDay: Int = 0,
     var name: String = "",
     var rentalDates: List<ApplianceRentalDate> = emptyList(),
-    var userId: String = ""
+    var userId: String = "",
 ) {
     constructor() : this("", "", "", "",emptyList(), 0.0, 0.0, 0,"", emptyList(), "")
 }

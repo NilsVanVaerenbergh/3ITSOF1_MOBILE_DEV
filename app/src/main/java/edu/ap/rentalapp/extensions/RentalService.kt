@@ -1,12 +1,16 @@
 package edu.ap.rentalapp.extensions
 
 import android.content.Context
+import android.location.Location
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import edu.ap.rentalapp.entities.Appliance
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.entities.ApplianceRentalDate
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -151,7 +155,9 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
                     val startDate = doc.getDate("startDate") ?: return@mapNotNull null
                     val endDate = doc.getDate("endDate") ?: return@mapNotNull null
                     val rentedBy = doc.getString("rentedByUserId") ?: return@mapNotNull null
+                    val rentalId = doc.id;
                     ApplianceRentalDate(
+                        Id = rentalId,
                         applianceId = id,
                         startDate = startDate,
                         endDate = endDate,
@@ -176,7 +182,7 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
             applianceId = id,
             startDate = startDate,
             endDate = endDate,
-            rentedByUserId = userId
+            rentedByUserId = userId,
         )
         return try {
             rentalDateRef.set(rentalDate).await()
@@ -198,4 +204,26 @@ class RentalService(private val firestore: FirebaseFirestore = Firebase.firestor
             return price
         }
     }
+
+    fun deleteAppliance(id: String): Flow<Result<Unit>> = callbackFlow {
+        firestore.collection("myAppliances").document(id).delete()
+            .addOnSuccessListener {
+                trySend(Result.success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                trySend(Result.failure(exception))
+            }
+        awaitClose()
+    }
+    fun deleteRentalDate(id: String): Flow<Result<Unit>> = callbackFlow {
+        firestore.collection("rentalDates").document(id).delete()
+            .addOnSuccessListener {
+                trySend(Result.success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                trySend(Result.failure(exception))
+            }
+        awaitClose()
+    }
+
 }

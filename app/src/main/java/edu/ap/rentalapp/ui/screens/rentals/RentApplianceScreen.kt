@@ -206,7 +206,7 @@ fun RentApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCon
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Save Rental Dates")
+                Text("Rent appliance")
             }
         }
 
