@@ -1,7 +1,6 @@
 package edu.ap.rentalapp.ui.screens
 
 import android.Manifest
-import android.location.Location
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkBorder
@@ -10,11 +9,7 @@ import androidx.compose.material.icons.outlined.Iron
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
@@ -24,12 +19,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.gson.Gson
-
-import edu.ap.rentalapp.components.getCurrentLocation
-import edu.ap.rentalapp.components.saveUserLocationToFirebase
 import edu.ap.rentalapp.entities.BottomNavItem
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
@@ -73,39 +64,15 @@ fun AppScreen() {
         BottomNavItem("My Rentals", Icons.Outlined.Iron, "myRentals")
     )
 
-    // Track whether permissions have been handled
-    var hasAskedForPermission by remember { mutableStateOf(false) }
-
-    // Track the user's location
-    var userLocation by remember { mutableStateOf<Location?>(null) }
-
     // Permission state from Accompanist
     val permissionState =
         rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
 
-    if (!hasAskedForPermission) {
-        SideEffect {
-            hasAskedForPermission = true
-            permissionState.launchPermissionRequest()
-        }
-    }
     // Observe authentication state
     LaunchedEffect(isAuthenticated) {
         if (isAuthenticated) {
             navController.navigate("home") {
                 popUpTo("signIn") { inclusive = true }
-            }
-            hasAskedForPermission = false
-            userLocation = null
-
-            if (permissionState.status.isGranted && userLocation == null) {
-                getCurrentLocation(context) { location ->
-                    if (location != null) {
-                        saveUserLocationToFirebase(context, location.latitude, location.longitude)
-                        userLocation = location
-                    }
-
-                }
             }
         } else {
             navController.navigate("signIn") {
@@ -204,8 +171,8 @@ fun AppScreen() {
             }
             composable(route = "home") {
                 RentalOverViewScreen(
-                    //authViewModel = authViewModel, // Pass the ViewModel to log out
-                    navController = navController
+                    navController = navController,
+                    permissionState = permissionState
                 )
             }
             composable("addAppliance") {
