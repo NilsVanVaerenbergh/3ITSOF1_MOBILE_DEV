@@ -71,6 +71,7 @@ import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import edu.ap.rentalapp.ui.theme.Blue
+import edu.ap.rentalapp.ui.theme.Green
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -340,7 +341,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                         // navController.navigate("myRentals")
                     },
                     colors = ButtonDefaults.buttonColors(
-                        Blue
+                        Green
                     ),
                     modifier = modifier
                         .align(Alignment.CenterHorizontally)
@@ -388,7 +389,7 @@ fun UploadImagesFromGallery(
         modifier = modifier
             .padding(top = 15.dp)
             .size(150.dp)
-            .background(Blue, shape = ShapeDefaults.Small)
+            .background(Green, shape = ShapeDefaults.Small)
 
 
     ) {
