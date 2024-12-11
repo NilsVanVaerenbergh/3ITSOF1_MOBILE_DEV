@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,6 +27,7 @@ import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.ui.screens.myRentals.MyRentalsScreen
 import edu.ap.rentalapp.ui.screens.rentals.ApplianceScreen
+import edu.ap.rentalapp.ui.screens.rentals.HomeViewModel
 import edu.ap.rentalapp.ui.screens.rentals.RentApplianceScreen
 import edu.ap.rentalapp.ui.screens.rentals.RentalOverViewScreen
 import edu.ap.rentalapp.ui.shared.NavigationBottomBar
@@ -170,9 +172,11 @@ fun AppScreen() {
                 )
             }
             composable(route = "home") {
+                val homeViewModel: HomeViewModel = viewModel()
                 RentalOverViewScreen(
                     navController = navController,
-                    permissionState = permissionState
+                    permissionState = permissionState,
+                    homeViewModel = homeViewModel
                 )
             }
             composable("addAppliance") {

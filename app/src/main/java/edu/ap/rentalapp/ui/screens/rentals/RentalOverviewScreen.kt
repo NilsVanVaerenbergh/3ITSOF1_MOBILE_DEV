@@ -26,19 +26,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
@@ -50,6 +45,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,7 +63,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -100,9 +95,19 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController, permissionState: PermissionState) {
+fun RentalOverViewScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    permissionState: PermissionState,
+    homeViewModel: HomeViewModel
+) {
 
     val context = LocalContext.current
+
+    // Track whether permissions have been handled
+    var hasAskedForPermission by rememberSaveable { mutableStateOf(false) }
+    // Track the user's location
+    val userLocation = homeViewModel.userLocation.collectAsState()
 
     val authenticationManager = remember { AuthenticationManager(context) }
     val userService = remember { UserServiceSingleton.getInstance(context) }
@@ -113,8 +118,8 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     var address by remember { mutableStateOf("") }
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
-    var radiusInKm by remember { mutableDoubleStateOf(0.0) }
-    var maxRadius by remember { mutableDoubleStateOf(30.0) }
+    var radiusInKm by remember { mutableDoubleStateOf(0.0) } // Default to 0km
+    var maxRadius by remember { mutableDoubleStateOf(10.0) } // Default max radius to 5km
 
 
     val rentalService = RentalServiceSingleton.getInstance(context)
@@ -122,9 +127,6 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     val loading = remember { mutableStateOf(true) }
     var selectedCategory by remember { mutableStateOf("Category") }
     var searchText by remember { mutableStateOf("") }
-
-    var hasAskedForPermission by rememberSaveable { mutableStateOf(false) }
-    var userLocation by remember { mutableStateOf<Location?>(null) }
 
     val filteredAppliances = remember(radiusInKm, selectedCategory, searchText) {
         filterAppliances(
@@ -147,8 +149,8 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
         if (permissionState.status.isGranted && userLocation == null) {
             getCurrentLocation(context) { location ->
                 if (location != null) {
+                    homeViewModel.updateUserLocation(location)
                     saveUserLocationToFirebase(context, location.latitude, location.longitude)
-                    userLocation = location
                 }
             }
         }
@@ -202,7 +204,10 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
             radius = radiusInKm,
             maxRadius = maxRadius.toFloat(),
             onRadiusChange = { radiusInKm = it },
-            onMaxRadiusChange = { maxRadius = it }
+            onMaxRadiusChange = {
+                maxRadius = it
+                radiusInKm = it
+            }
         )
 
         Row(
@@ -210,14 +215,7 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
         ) {
             OutlinedTextField(
                 value = searchText,
-                onValueChange = { text -> searchText = text },
-                placeholder = {
-                    Text(
-                        "Search...",
-                        textAlign = TextAlign.Start,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                },
+                onValueChange = { searchText = it },
                 trailingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
@@ -229,7 +227,9 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                     imeAction = ImeAction.Search
                 ),
                 shape = RoundedCornerShape(99.dp),
-                modifier = modifier.padding(horizontal = 8.dp, vertical = 3.dp).height(46.dp),
+                modifier = modifier
+                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                    .height(46.dp),
                 colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = Color.Transparent,          // No border when focused
                     unfocusedIndicatorColor = Color.Transparent,        // No border when unfocused
@@ -252,6 +252,7 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
             onRefresh = {
                 coroutineScope.launch {
                     fetchRentals(userId, rentalService, rentalList, loading)
+                    userData = userService.getUserByIdSuspended(userId)
                 }
             }
         ) {
@@ -286,10 +287,12 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                     ) {
                         if (filteredAppliances.isNotEmpty()) {
                             items(filteredAppliances) { appliance ->
-                                CustomCard(GeoPoint(
-                                    userData!!.lat.toDouble(),
-                                    userData!!.lon.toDouble()
-                                ),appliance, navController)
+                                CustomCard(
+                                    GeoPoint(
+                                        userData!!.lat.toDouble(),
+                                        userData!!.lon.toDouble()
+                                    ), appliance, navController
+                                )
                             }
                         } else {
                             item {
@@ -518,12 +521,14 @@ fun CustomCard(homeLocation: GeoPoint, appliance: ApplianceDTO, navController: N
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth().padding(8.dp)
+                .fillMaxWidth()
+                .padding(8.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(60.dp)
-                    .background(Color.Gray, RoundedCornerShape(8.dp)).fillMaxHeight(),
+                    .background(Color.Gray, RoundedCornerShape(8.dp))
+                    .fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
@@ -544,12 +549,18 @@ fun CustomCard(homeLocation: GeoPoint, appliance: ApplianceDTO, navController: N
             ) {
                 Text(
                     text = appliance.name,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, fontFamily = FontFamily.SansSerif),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.SansSerif
+                    ),
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = appliance.description,
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, fontFamily = FontFamily.SansSerif),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily.SansSerif
+                    ),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
