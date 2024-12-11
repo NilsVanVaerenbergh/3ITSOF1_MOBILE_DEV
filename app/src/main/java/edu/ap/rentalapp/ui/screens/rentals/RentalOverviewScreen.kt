@@ -3,6 +3,7 @@ package edu.ap.rentalapp.ui.screens.rentals
 import android.annotation.SuppressLint
 import android.location.Location
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -396,6 +397,9 @@ fun RadiusSlider(
             if (showDialog) {
                 BasicAlertDialog(
                     onDismissRequest = { showDialog = false },
+                    modifier = Modifier
+                        .background(Color.White, RoundedCornerShape(8.dp))
+                        .border(BorderStroke(2.dp, Color.Black))
                 ) {
                     var newMaxRadius by remember { mutableStateOf(maxRadius.toString()) }
 
@@ -407,17 +411,19 @@ fun RadiusSlider(
                             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                         )
 
-                        TextButton(onClick = {
-                            val newRadius = newMaxRadius.toDouble()
-                            if (newRadius > 0) {
-                                onMaxRadiusChange(newRadius)
+                        Row{
+                            TextButton(onClick = {
+                                val newRadius = newMaxRadius.toDouble()
+                                if (newRadius > 0) {
+                                    onMaxRadiusChange(newRadius)
+                                }
+                                showDialog = false
+                            }) {
+                                Text("OK")
                             }
-                            showDialog = false
-                        }) {
-                            Text("OK")
-                        }
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("Cancel")
+                            TextButton(onClick = { showDialog = false }) {
+                                Text("Cancel")
+                            }
                         }
                     }
                 }
