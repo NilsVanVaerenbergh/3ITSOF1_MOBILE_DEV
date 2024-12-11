@@ -3,6 +3,7 @@ package edu.ap.rentalapp.ui.screens.rentals
 import android.annotation.SuppressLint
 import android.location.Location
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,6 +45,7 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,12 +60,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import edu.ap.rentalapp.components.CategorySelect
 import edu.ap.rentalapp.components.OSM
 import edu.ap.rentalapp.components.filterItemsByCategory
 import edu.ap.rentalapp.components.getAddressFromLatLng
+import edu.ap.rentalapp.components.getCurrentLocation
+import edu.ap.rentalapp.components.saveUserLocationToFirebase
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
@@ -77,11 +84,20 @@ import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun RentalOverViewScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    permissionState: PermissionState
+) {
 
     val context = LocalContext.current
+
+    // Track whether permissions have been handled
+    var hasAskedForPermission by rememberSaveable { mutableStateOf(false) }
+    // Track the user's location
+    var userLocation by remember { mutableStateOf<Location?>(null) }
 
     val authenticationManager = remember { AuthenticationManager(context) }
     val userService = remember { UserServiceSingleton.getInstance(context) }
@@ -111,11 +127,29 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
         )
     }
 
-    //val filteredItems = filterItemsByDistance(rentalList, 51.216962, 4.399859, radiusInKm)
-
     // Get the CoroutineScope for launching coroutines
     val coroutineScope = rememberCoroutineScope()
 
+
+    // Ask for location permission only on the "home" screen
+    LaunchedEffect(Unit) {
+        if (!hasAskedForPermission) {
+            hasAskedForPermission = true
+            permissionState.launchPermissionRequest()
+        }
+    }
+
+    // Get location if permission is granted
+    LaunchedEffect(permissionState.status.isGranted) {
+        if (permissionState.status.isGranted && userLocation == null) {
+            getCurrentLocation(context) { location ->
+                if (location != null) {
+                    saveUserLocationToFirebase(context, location.latitude, location.longitude)
+                    userLocation = location
+                }
+            }
+        }
+    }
 
     // Fetch rentals when the composable is launched
     LaunchedEffect(user) {
@@ -138,6 +172,7 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
         }
         coroutineScope.launch {
             fetchRentals(userId, rentalService, rentalList, loading)
+
         }
     }
 
@@ -195,13 +230,15 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                         contentDescription = "Search icon"
                     )
                 },
+                enabled = !loading.value,
                 modifier = modifier
                     //.fillMaxWidth()
                     .padding(15.dp)
             )
             Column {
                 CategorySelect(
-                    setCategory = { selectedCategory = it }
+                    setCategory = { selectedCategory = it },
+                    enabled = !loading.value
                 )
             }
         }
@@ -272,7 +309,7 @@ fun filterAppliances(
     }
 
     return filteredByText.filter { appliance ->
-        Log.d("location", "filterAppliancesByRadius: ${appliance.name}")
+        //Log.d("location", "filterAppliancesByRadius: ${appliance.name}")
         calculateDistance(
             userData!!.lat.toDouble(),
             userData.lon.toDouble(),
@@ -360,6 +397,9 @@ fun RadiusSlider(
             if (showDialog) {
                 BasicAlertDialog(
                     onDismissRequest = { showDialog = false },
+                    modifier = Modifier
+                        .background(Color.White, RoundedCornerShape(8.dp))
+                        .border(BorderStroke(2.dp, Color.Black))
                 ) {
                     var newMaxRadius by remember { mutableStateOf(maxRadius.toString()) }
 
@@ -371,17 +411,19 @@ fun RadiusSlider(
                             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                         )
 
-                        TextButton(onClick = {
-                            val newRadius = newMaxRadius.toDouble()
-                            if (newRadius > 0) {
-                                onMaxRadiusChange(newRadius)
+                        Row{
+                            TextButton(onClick = {
+                                val newRadius = newMaxRadius.toDouble()
+                                if (newRadius > 0) {
+                                    onMaxRadiusChange(newRadius)
+                                }
+                                showDialog = false
+                            }) {
+                                Text("OK")
                             }
-                            showDialog = false
-                        }) {
-                            Text("OK")
-                        }
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("Cancel")
+                            TextButton(onClick = { showDialog = false }) {
+                                Text("Cancel")
+                            }
                         }
                     }
                 }

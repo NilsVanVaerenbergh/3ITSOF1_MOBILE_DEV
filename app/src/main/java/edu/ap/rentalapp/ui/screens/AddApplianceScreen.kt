@@ -45,6 +45,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -90,7 +91,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedImages by remember { mutableStateOf(listOf<Uri>()) }
-    var pricePerDay by remember { mutableStateOf(0) }
+    var pricePerDay by remember { mutableIntStateOf(0) }
     var expanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("Select Category") }
     val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
@@ -174,6 +175,8 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                         val newValue = text.toIntOrNull()
                         if (newValue != null) {
                             pricePerDay = newValue
+                        } else {
+                            pricePerDay = 0
                         }
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -244,11 +247,8 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                                     longitude = lon
                                 },
                             )
-                        }
-                        coroutineScope.launch {
-                            val addressFromLatLon =
-                                getAddressFromLatLng(context, latitude, longitude).toString()
-                            address = addressFromLatLon
+
+                            address = getAddressFromLatLng(context, latitude, longitude).toString()
                         }
 
                     },
@@ -295,7 +295,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
             item {
                 val validLocation = address.isNotBlank() && longitude != 0.0 && latitude != 0.0
                 val isFormValid =
-                    name.isNotBlank() && description.isNotBlank() && selectedCategory.isNotEmpty() && selectedImages.isNotEmpty()
+                    name.isNotBlank() && description.isNotBlank() && selectedCategory.isNotEmpty() && selectedImages.isNotEmpty() && pricePerDay > 0
                 Button(
                     onClick = {
                         if (isFormValid && validLocation) {

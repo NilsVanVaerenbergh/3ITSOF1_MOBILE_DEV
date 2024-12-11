@@ -4,15 +4,20 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,24 +40,25 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
-import edu.ap.rentalapp.entities.Appliance
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostController, id : String) {
+fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostController, id: String) {
 
     val paddingInBetween = 10.dp
     val context = LocalContext.current
 
-    val rentalService = RentalServiceSingleton.getInstance(context);
+    val rentalService = RentalServiceSingleton.getInstance(context)
+    val userService = UserServiceSingleton.getInstance(context)
 
     val authenticationManager = remember { AuthenticationManager(context) }
     val user = authenticationManager.auth.currentUser
@@ -67,7 +73,6 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
         coroutineScope.launch {
             try {
                 isLoading = true
-
                 appliance = rentalService.getRentalAndDatesById(id)
             } catch (e: Exception) {
                 navController.navigate("rentalsOverview")
@@ -157,7 +162,73 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-            if (user!!.uid.toString() == appliance!!.userId) {
+            Text(
+                text = "Address:",
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = appliance!!.address,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            // My rentals
+            if (user!!.uid == appliance!!.userId) {
+                if (appliance!!.rentalDates.isNotEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        var renterName by remember { mutableStateOf("") }
+                        LaunchedEffect(Unit) {
+                            renterName =
+                                userService.getUserByIdSuspended(appliance!!.rentalDates[0].rentedByUserId)?.username
+                                    ?: ""
+                        }
+
+                        Icon(
+                            Icons.Default.Person,
+                            "Profile Icon",
+                            modifier = Modifier.size(30.dp)
+                        )
+                        Spacer(Modifier.padding(1.dp))
+                        Text(
+                            text = renterName.ifEmpty { "Unknown" },
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                        )
+                    }
+                    Text(
+                        text = "Rented:",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier.padding( top = 8.dp , bottom = 16.dp)
+                    ) {
+                        Text(
+                            text = "${
+                                SimpleDateFormat(
+                                    "dd MMM yyyy",
+                                    Locale.getDefault()
+                                ).format(appliance!!.rentalDates[0].startDate)
+                            } - ",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                        )
+
+                        Text(
+                            text = SimpleDateFormat(
+                                "dd MMM yyyy",
+                                Locale.getDefault()
+                            ).format(appliance!!.rentalDates[0].endDate),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                        )
+
+                    }
+                }
                 Button(
                     onClick = {
                         if (appliance!!.rentalDates.isEmpty()) {
@@ -187,7 +258,32 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                         }
                     }
                 ) { Text(text = "Delete appliance") }
-            } else if (!appliance!!.rentalDates.isEmpty() && appliance!!.rentalDates[0].rentedByUserId == user!!.uid.toString()) {
+            }
+            // My reservations
+            else if (appliance!!.rentalDates.isNotEmpty() && appliance!!.rentalDates[0].rentedByUserId == user.uid) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    var ownerName by remember { mutableStateOf("") }
+                    LaunchedEffect(Unit) {
+                        ownerName =
+                            userService.getUserByIdSuspended(appliance!!.userId)?.username ?: ""
+                    }
+
+                    Icon(
+                        Icons.Default.Person,
+                        "Profile Icon",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Spacer(Modifier.padding(1.dp))
+                    Text(
+                        text = ownerName.ifEmpty { "Unknown" },
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                    )
+                }
+
                 Button(
                     onClick = {
                         Toast.makeText(
@@ -215,7 +311,31 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                             }.launchIn(coroutineScope)
                     }
                 ) { Text(text = "Cancel renting") }
-            } else {
+            }
+            // Rent appliance
+            else {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    var ownerName by remember { mutableStateOf("") }
+                    LaunchedEffect(Unit) {
+                        ownerName =
+                            userService.getUserByIdSuspended(appliance!!.userId)?.username ?: ""
+                    }
+
+                    Icon(
+                        Icons.Default.Person,
+                        "Profile Icon",
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Spacer(Modifier.padding(1.dp))
+                    Text(
+                        text = ownerName.ifEmpty { "Unknown" },
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                    )
+                }
                 Button(
                     onClick = {
                         navController.navigate("rental/${id}/rent")
