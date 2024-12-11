@@ -28,7 +28,8 @@ import edu.ap.rentalapp.ui.theme.Purple40
 @Composable
 fun CategorySelect(
     modifier: Modifier = Modifier,
-    setCategory: (category: String) -> Unit
+    setCategory: (category: String) -> Unit,
+    enabled: Boolean = true
 ) {
     val categories = listOf("Garden", "Kitchen", "Maintenance", "Other")
     var expandedCat by remember { mutableStateOf(false) }
@@ -42,6 +43,7 @@ fun CategorySelect(
             contentColor = if (selectedCategory != "Category") Color.White else Green.copy(0.6F)
         ),
         border = BorderStroke(2.dp, Green),
+        enabled = enabled,
         modifier = modifier
     ) {
         Icon(

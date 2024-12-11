@@ -4,7 +4,6 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.widget.DatePicker
 import android.widget.Toast
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,14 +41,17 @@ import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun RentApplianceScreen(modifier: Modifier = Modifier, navController: NavHostController, id: String) {
+fun RentApplianceScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    id: String
+) {
     val dateFormat = SimpleDateFormat("d/MM/yyyy", Locale.getDefault())
     val paddingInBetween = 10.dp
     val context = LocalContext.current
@@ -102,23 +103,28 @@ fun RentApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCon
             Text("Failed to load appliance details.")
         }
     } else {
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
             Box(
                 modifier = modifier
-                    .aspectRatio(2f)
+                    .aspectRatio(1.5f)
                     .clip(RoundedCornerShape(8.dp))
-                    .border(1.dp, Color.LightGray)
                     .fillMaxWidth()
-
             ) {
                 OSM(
                     context = context,
                     latitude = userData!!.lat.toDouble(),
                     longitude = userData!!.lon.toDouble(),
-                    appliances = listOf(appliance!!) ,
+                    appliances = listOf(appliance!!),
+                    showRadius = false,
                     modifier = modifier
                 )
             }
+            Spacer(modifier = Modifier.padding(20.dp))
+
             Text(
                 text = appliance!!.name,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -176,13 +182,19 @@ fun RentApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCon
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = "${rentalService.calculatePrice(startDate, endDate, appliance!!.pricePerDay)} €",
+                    text = "${
+                        rentalService.calculatePrice(
+                            startDate,
+                            endDate,
+                            appliance!!.pricePerDay
+                        )
+                    } €",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
                 )
             }
+            Spacer(modifier = Modifier.height(paddingInBetween))
             Button(
-
                 onClick = {
                     try {
                         if (startDate != null && endDate != null) {
@@ -190,24 +202,39 @@ fun RentApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCon
                             val endDate = dateFormat.parse(endDate)
                             coroutineScope.launch {
                                 val userId = user?.uid ?: ""
-                                val success = rentalService.addRentalDateToAppliance(id, startDate,  endDate, userId)
+                                val success = rentalService.addRentalDateToAppliance(
+                                    id,
+                                    startDate,
+                                    endDate,
+                                    userId
+                                )
                                 if (success) {
                                     navController.navigate("myReservations");
                                 } else {
-                                    Toast.makeText(context, "Failed to save rental dates", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Failed to save rental dates",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         } else {
-                            Toast.makeText(context, "Invalid date format", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Invalid date format", Toast.LENGTH_SHORT)
+                                .show()
                         }
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Error parsing dates: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Error parsing dates: ${e.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Rent appliance")
             }
+
         }
 
     }
@@ -242,7 +269,11 @@ fun openDatePickerDialog(
                 val formattedDate = "$dayOfMonth/${month + 1}/$year"
                 onDateSelected(formattedDate)
             } else {
-                Toast.makeText(context, "This date is unavailable. Please select another date.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "This date is unavailable. Please select another date.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         },
         calendar.get(Calendar.YEAR),

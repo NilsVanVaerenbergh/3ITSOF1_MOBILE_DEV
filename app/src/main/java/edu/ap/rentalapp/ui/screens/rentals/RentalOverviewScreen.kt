@@ -3,6 +3,7 @@ package edu.ap.rentalapp.ui.screens.rentals
 import android.annotation.SuppressLint
 import android.location.Location
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,7 +26,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelfImprovement
@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,12 +71,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import edu.ap.rentalapp.components.CategorySelect
 import edu.ap.rentalapp.components.OSM
 import edu.ap.rentalapp.components.filterItemsByCategory
 import edu.ap.rentalapp.components.getAddressFromLatLng
+import edu.ap.rentalapp.components.getCurrentLocation
+import edu.ap.rentalapp.components.saveUserLocationToFirebase
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
@@ -87,13 +93,23 @@ import edu.ap.rentalapp.ui.theme.LightGrey
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.osmdroid.util.GeoPoint
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+fun RentalOverViewScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    permissionState: PermissionState
+) {
 
     val context = LocalContext.current
+
+    // Track whether permissions have been handled
+    var hasAskedForPermission by rememberSaveable { mutableStateOf(false) }
+    // Track the user's location
+    var userLocation by remember { mutableStateOf<Location?>(null) }
 
     val authenticationManager = remember { AuthenticationManager(context) }
     val userService = remember { UserServiceSingleton.getInstance(context) }
@@ -106,7 +122,6 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
     var longitude by remember { mutableDoubleStateOf(0.0) }
     var radiusInKm by remember { mutableDoubleStateOf(0.0) }
     var maxRadius by remember { mutableDoubleStateOf(30.0) }
-
 
     val rentalService = RentalServiceSingleton.getInstance(context)
     val rentalList = remember { mutableStateOf<List<ApplianceDTO>>(emptyList()) }
@@ -124,8 +139,29 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
         )
     }
 
+    // Get the CoroutineScope for launching coroutines
     val coroutineScope = rememberCoroutineScope()
 
+
+    // Ask for location permission only on the "home" screen
+    LaunchedEffect(Unit) {
+        if (!hasAskedForPermission) {
+            hasAskedForPermission = true
+            permissionState.launchPermissionRequest()
+        }
+    }
+
+    // Get location if permission is granted
+    LaunchedEffect(permissionState.status.isGranted) {
+        if (permissionState.status.isGranted && userLocation == null) {
+            getCurrentLocation(context) { location ->
+                if (location != null) {
+                    saveUserLocationToFirebase(context, location.latitude, location.longitude)
+                    userLocation = location
+                }
+            }
+        }
+    }
     LaunchedEffect(user) {
         if (user != null) {
             userService.getUserByUserId(userId).onEach { result ->
@@ -142,6 +178,7 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
         }
         coroutineScope.launch {
             fetchRentals(userId, rentalService, rentalList, loading)
+
         }
     }
 
@@ -210,10 +247,12 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                     unfocusedContainerColor = LightGrey.copy(0.4f), // Background color when unfocused
                     cursorColor = MaterialTheme.colorScheme.primary                              // Cursor color
                 ),
+                enabled = !loading.value,
             )
             Column {
                 CategorySelect(
-                    setCategory = { selectedCategory = it }
+                    setCategory = { selectedCategory = it },
+                    enabled = !loading.value
                 )
             }
         }
@@ -273,6 +312,18 @@ fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostCo
                                         contentDescription = "Sad",
                                         tint = Color.Gray.copy(0.6f)
                                     )
+                        ) {
+                            if (filteredAppliances.isNotEmpty()) {
+                                items(filteredAppliances) { appliance ->
+                                    CustomCard(
+                                        GeoPoint(
+                                            userData!!.lat.toDouble(),
+                                            userData!!.lon.toDouble()
+                                        ), appliance, navController
+                                    )
+                                }
+                            } else {
+                                item {
                                     Text(
                                         text = "Nothing found",
                                         modifier = modifier
@@ -306,7 +357,7 @@ fun filterAppliances(
     }
 
     return filteredByText.filter { appliance ->
-        Log.d("location", "filterAppliancesByRadius: ${appliance.name}")
+        //Log.d("location", "filterAppliancesByRadius: ${appliance.name}")
         calculateDistance(
             userData!!.lat.toDouble(),
             userData.lon.toDouble(),
@@ -396,6 +447,9 @@ fun RadiusSlider(
             if (showDialog) {
                 BasicAlertDialog(
                     onDismissRequest = { showDialog = false },
+                    modifier = Modifier
+                        .background(Color.White, RoundedCornerShape(8.dp))
+                        .border(BorderStroke(2.dp, Color.Black))
                 ) {
                     var newMaxRadius by remember { mutableStateOf(maxRadius.toString()) }
 
@@ -407,17 +461,19 @@ fun RadiusSlider(
                             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                         )
 
-                        TextButton(onClick = {
-                            val newRadius = newMaxRadius.toDouble()
-                            if (newRadius > 0) {
-                                onMaxRadiusChange(newRadius)
+                        Row{
+                            TextButton(onClick = {
+                                val newRadius = newMaxRadius.toDouble()
+                                if (newRadius > 0) {
+                                    onMaxRadiusChange(newRadius)
+                                }
+                                showDialog = false
+                            }) {
+                                Text("OK")
                             }
-                            showDialog = false
-                        }) {
-                            Text("OK")
-                        }
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("Cancel")
+                            TextButton(onClick = { showDialog = false }) {
+                                Text("Cancel")
+                            }
                         }
                     }
                 }
@@ -459,8 +515,16 @@ suspend fun fetchRentals(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
-fun CustomCard(appliance: ApplianceDTO, navController: NavHostController) {
+fun CustomCard(homeLocation: GeoPoint, appliance: ApplianceDTO, navController: NavHostController) {
+
+    val distance = calculateDistance(
+        homeLocation.latitude,
+        homeLocation.longitude,
+        appliance.latitude,
+        appliance.longitude
+    ) / 1000
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -517,21 +581,17 @@ fun CustomCard(appliance: ApplianceDTO, navController: NavHostController) {
                     .align(Alignment.CenterVertically)
             ) {
                 Text(
-                    text = "Price/day ${appliance.pricePerDay}€",
+                    text = "~${String.format(" % .2f", distance)} km",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
+                    color = Color.Black,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                IconButton(
-                    onClick = { /* Handle button click */ },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add",
-                        tint = Color.Black
-                    )
-                }
+                Text(
+                    text = "€${appliance.pricePerDay}/day",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
             }
         }
     }
