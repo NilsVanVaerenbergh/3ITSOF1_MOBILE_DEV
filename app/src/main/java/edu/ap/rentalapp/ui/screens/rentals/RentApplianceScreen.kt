@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,7 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,6 +45,7 @@ import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
+import edu.ap.rentalapp.ui.theme.Green
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -124,61 +129,15 @@ fun RentApplianceScreen(
                 )
             }
             Spacer(modifier = Modifier.padding(20.dp))
-
             Text(
                 text = appliance!!.name,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 fontSize = 24.sp
             )
-            Spacer(modifier = Modifier.height(paddingInBetween))
-            Text(
-                text = appliance!!.description,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(bottom = paddingInBetween)
-            )
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Select Start Date: ",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = startDate ?: "Not selected",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.clickable {
-                            openDatePickerDialog(context, appliance!!.rentalDates) { date ->
-                                startDate = date
-                            }
-                        }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(paddingInBetween))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Select End Date: ",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = endDate ?: "Not selected",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.clickable {
-                            openDatePickerDialog(context, appliance!!.rentalDates) { date ->
-                                endDate = date
-                            }
-                        }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(paddingInBetween))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Current total price:",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp, fontFamily = FontFamily.SansSerif),
                     modifier = Modifier.weight(1f)
                 )
                 Text(
@@ -189,10 +148,55 @@ fun RentApplianceScreen(
                             appliance!!.pricePerDay
                         )
                     } €",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, fontSize = 24.sp, fontFamily = FontFamily.SansSerif),
                     modifier = Modifier
                 )
             }
+            Spacer(modifier = Modifier.height(paddingInBetween))
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Select Start Date",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(
+                        onClick = {openDatePickerDialog(context, appliance!!.rentalDates) { date ->
+                            startDate = date
+                        }},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Green,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(text = startDate ?: "Not selected",)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(paddingInBetween))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Select End Date",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(
+                        onClick = {openDatePickerDialog(context, appliance!!.rentalDates) { date ->
+                            endDate = date
+                        }},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Green,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(text = endDate ?: "Not selected",)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(paddingInBetween))
+
             Spacer(modifier = Modifier.height(paddingInBetween))
             Button(
                 onClick = {
@@ -230,6 +234,10 @@ fun RentApplianceScreen(
                         ).show()
                     }
                 },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Green,
+                    contentColor = Color.White
+                ),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Rent appliance")

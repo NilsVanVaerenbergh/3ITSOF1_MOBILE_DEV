@@ -11,6 +11,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.entities.ApplianceDTO
+import edu.ap.rentalapp.ui.theme.Green
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.osmdroid.config.Configuration
@@ -201,7 +202,7 @@ fun drawLineToAppliance(center: GeoPoint, applianceLocation: GeoPoint, mapView: 
     val polyline = Polyline(mapView).apply {
         addPoint(center) // Start point
         addPoint(applianceLocation) // End point
-        outlinePaint.color = Color.BLUE // Line color
+        outlinePaint.color = (0xFF0DA52E).toInt() // Line color
         outlinePaint.strokeWidth = 5f // Line width
     }
     mapView.overlays.add(polyline)

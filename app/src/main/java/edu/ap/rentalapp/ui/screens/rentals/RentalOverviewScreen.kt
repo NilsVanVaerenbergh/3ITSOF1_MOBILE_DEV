@@ -26,12 +26,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -96,20 +98,11 @@ import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun RentalOverViewScreen(
-    modifier: Modifier = Modifier,
-    navController: NavHostController,
-    permissionState: PermissionState
-) {
+fun RentalOverViewScreen(modifier: Modifier = Modifier, navController: NavHostController, permissionState: PermissionState) {
 
     val context = LocalContext.current
-
-    // Track whether permissions have been handled
-    var hasAskedForPermission by rememberSaveable { mutableStateOf(false) }
-    // Track the user's location
-    var userLocation by remember { mutableStateOf<Location?>(null) }
 
     val authenticationManager = remember { AuthenticationManager(context) }
     val userService = remember { UserServiceSingleton.getInstance(context) }
@@ -123,11 +116,15 @@ fun RentalOverViewScreen(
     var radiusInKm by remember { mutableDoubleStateOf(0.0) }
     var maxRadius by remember { mutableDoubleStateOf(30.0) }
 
+
     val rentalService = RentalServiceSingleton.getInstance(context)
     val rentalList = remember { mutableStateOf<List<ApplianceDTO>>(emptyList()) }
     val loading = remember { mutableStateOf(true) }
     var selectedCategory by remember { mutableStateOf("Category") }
     var searchText by remember { mutableStateOf("") }
+
+    var hasAskedForPermission by rememberSaveable { mutableStateOf(false) }
+    var userLocation by remember { mutableStateOf<Location?>(null) }
 
     val filteredAppliances = remember(radiusInKm, selectedCategory, searchText) {
         filterAppliances(
@@ -139,19 +136,13 @@ fun RentalOverViewScreen(
         )
     }
 
-    // Get the CoroutineScope for launching coroutines
     val coroutineScope = rememberCoroutineScope()
-
-
-    // Ask for location permission only on the "home" screen
     LaunchedEffect(Unit) {
         if (!hasAskedForPermission) {
             hasAskedForPermission = true
             permissionState.launchPermissionRequest()
         }
     }
-
-    // Get location if permission is granted
     LaunchedEffect(permissionState.status.isGranted) {
         if (permissionState.status.isGranted && userLocation == null) {
             getCurrentLocation(context) { location ->
@@ -162,6 +153,7 @@ fun RentalOverViewScreen(
             }
         }
     }
+
     LaunchedEffect(user) {
         if (user != null) {
             userService.getUserByUserId(userId).onEach { result ->
@@ -178,7 +170,6 @@ fun RentalOverViewScreen(
         }
         coroutineScope.launch {
             fetchRentals(userId, rentalService, rentalList, loading)
-
         }
     }
 
@@ -243,11 +234,10 @@ fun RentalOverViewScreen(
                     focusedIndicatorColor = Color.Transparent,          // No border when focused
                     unfocusedIndicatorColor = Color.Transparent,        // No border when unfocused
                     disabledIndicatorColor = Color.Transparent,         // No border when disabled
-                    focusedContainerColor = LightGrey.copy(0.4f), // Background color when focused
-                    unfocusedContainerColor = LightGrey.copy(0.4f), // Background color when unfocused
+                    focusedContainerColor = LightGrey.copy(0.2f), // Background color when focused
+                    unfocusedContainerColor = LightGrey.copy(0.2f), // Background color when unfocused
                     cursorColor = MaterialTheme.colorScheme.primary                              // Cursor color
                 ),
-                enabled = !loading.value,
             )
             Column {
                 CategorySelect(
@@ -296,7 +286,10 @@ fun RentalOverViewScreen(
                     ) {
                         if (filteredAppliances.isNotEmpty()) {
                             items(filteredAppliances) { appliance ->
-                                CustomCard(appliance, navController)
+                                CustomCard(GeoPoint(
+                                    userData!!.lat.toDouble(),
+                                    userData!!.lon.toDouble()
+                                ),appliance, navController)
                             }
                         } else {
                             item {
@@ -312,18 +305,6 @@ fun RentalOverViewScreen(
                                         contentDescription = "Sad",
                                         tint = Color.Gray.copy(0.6f)
                                     )
-                        ) {
-                            if (filteredAppliances.isNotEmpty()) {
-                                items(filteredAppliances) { appliance ->
-                                    CustomCard(
-                                        GeoPoint(
-                                            userData!!.lat.toDouble(),
-                                            userData!!.lon.toDouble()
-                                        ), appliance, navController
-                                    )
-                                }
-                            } else {
-                                item {
                                     Text(
                                         text = "Nothing found",
                                         modifier = modifier
@@ -357,7 +338,7 @@ fun filterAppliances(
     }
 
     return filteredByText.filter { appliance ->
-        //Log.d("location", "filterAppliancesByRadius: ${appliance.name}")
+        Log.d("location", "filterAppliancesByRadius: ${appliance.name}")
         calculateDistance(
             userData!!.lat.toDouble(),
             userData.lon.toDouble(),
@@ -461,7 +442,7 @@ fun RadiusSlider(
                             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
                         )
 
-                        Row{
+                        Row {
                             TextButton(onClick = {
                                 val newRadius = newMaxRadius.toDouble()
                                 if (newRadius > 0) {
@@ -532,17 +513,17 @@ fun CustomCard(homeLocation: GeoPoint, appliance: ApplianceDTO, navController: N
             .clickable {
                 navController.navigate("rental/${appliance.id}")
             },
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = LightGrey.copy(0.1f))
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
+                .fillMaxWidth().padding(8.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(60.dp)
-                    .background(Color.Gray, RoundedCornerShape(8.dp)),
+                    .background(Color.Gray, RoundedCornerShape(8.dp)).fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
@@ -563,12 +544,12 @@ fun CustomCard(homeLocation: GeoPoint, appliance: ApplianceDTO, navController: N
             ) {
                 Text(
                     text = appliance.name,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, fontFamily = FontFamily.SansSerif),
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = appliance.description,
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, fontFamily = FontFamily.SansSerif),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )

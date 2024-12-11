@@ -45,7 +45,7 @@ fun SharedTopAppBar(title: String, navController: NavController) {
         navigationIcon = {
             if (showBackArrow) {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Color.White)
                 }
             }
         },
