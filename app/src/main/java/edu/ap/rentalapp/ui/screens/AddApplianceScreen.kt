@@ -70,7 +70,6 @@ import edu.ap.rentalapp.components.getAddressFromLatLng
 import edu.ap.rentalapp.entities.User
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
-import edu.ap.rentalapp.ui.theme.Blue
 import edu.ap.rentalapp.ui.theme.Green
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -406,13 +405,13 @@ fun UploadImagesFromGallery(
             Box {
                 Image(
                     painter = rememberAsyncImagePainter(uri),
-                    contentScale = ContentScale.FillWidth,
+                    contentScale = ContentScale.Crop,
                     contentDescription = null,
                     modifier = modifier
                         .padding(5.dp, 5.dp)
                         .size(100.dp)
                         .clip(shape = ShapeDefaults.Small)
-                        .border(BorderStroke(1.dp, Blue))
+                        .border(BorderStroke(2.dp, Green))
 
                 )
                 Icon(
