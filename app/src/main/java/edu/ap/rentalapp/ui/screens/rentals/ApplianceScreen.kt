@@ -47,6 +47,8 @@ import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -195,6 +197,36 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
                         )
+                    }
+                    Text(
+                        text = "Rented:",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier.padding( top = 8.dp , bottom = 16.dp)
+                    ) {
+                        Text(
+                            text = "${
+                                SimpleDateFormat(
+                                    "dd MMM yyyy",
+                                    Locale.getDefault()
+                                ).format(appliance!!.rentalDates[0].startDate)
+                            } - ",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                        )
+
+                        Text(
+                            text = SimpleDateFormat(
+                                "dd MMM yyyy",
+                                Locale.getDefault()
+                            ).format(appliance!!.rentalDates[0].endDate),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                        )
+
                     }
                 }
                 Button(
