@@ -235,6 +235,10 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
 
             item {
                 Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Green,
+                        contentColor = Color.White
+                    ),
                     onClick = {
                         coroutineScope.launch {
                             findGeoLocationFromAddress(
@@ -297,6 +301,10 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                 val isFormValid =
                     name.isNotBlank() && description.isNotBlank() && selectedCategory.isNotEmpty() && selectedImages.isNotEmpty() && pricePerDay > 0
                 Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Green,
+                        contentColor = Color.White
+                    ),
                     onClick = {
                         if (isFormValid && validLocation) {
                             loading = true
@@ -339,9 +347,6 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
                         }
                         // navController.navigate("myRentals")
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        Green
-                    ),
                     modifier = modifier
                         .align(Alignment.CenterHorizontally)
                         .fillMaxWidth()

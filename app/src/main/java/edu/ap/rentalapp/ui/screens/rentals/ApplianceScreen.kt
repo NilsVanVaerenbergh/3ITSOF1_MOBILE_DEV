@@ -159,7 +159,7 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
-                text = appliance!!.pricePerDay.toString(),
+                text = "${appliance!!.pricePerDay} €",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -295,11 +295,6 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                         contentColor = Color.White
                     ),
                     onClick = {
-                        Toast.makeText(
-                            context,
-                            appliance!!.rentalDates[0].Id,
-                            Toast.LENGTH_SHORT
-                        ).show()
                         rentalService.deleteRentalDate(appliance!!.rentalDates[0].Id)
                             .onEach { response ->
                                 if (response.isSuccess) {
