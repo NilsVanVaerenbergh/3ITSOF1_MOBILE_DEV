@@ -10,10 +10,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,21 +60,39 @@ fun UserProfileScreen(
     var address by remember { mutableStateOf("Loading...") }
 
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)// Ensure proper padding for visibility
     ) {
 
         if (user == null) {
-            Text(
-                text = "Geen gebruiker gevonden...",
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth() // Ensures the Column takes up the full width
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.Center, // Centers content vertically
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.SentimentVeryDissatisfied,
+                    contentDescription = "Sad",
+                    tint = Color.Gray.copy(0.6f)
+                )
+                Text(
+                    text = "Nothing user found",
+                    modifier = modifier
+                        .padding(20.dp)
+                        .align(Alignment.CenterHorizontally),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray.copy(0.6f)
+                )
+            }
         } else {
             Log.d("FIRESTORE", "uid:$userId")
             LaunchedEffect(userId, userData) {
                 isLoading = true
                 userService.getUserByUserId(userId = userId).onEach { result ->
                     if (result.isFailure) {
-                        Toast.makeText(context, "Kon geen gegevens ophalen", Toast.LENGTH_LONG)
+                        Toast.makeText(context, "Failed to fetch user", Toast.LENGTH_LONG)
                             .show()
                         isLoading = false
                     } else if (result.isSuccess) {
@@ -99,7 +121,7 @@ fun UserProfileScreen(
                 }.launchIn(coroutineScope)
             }
             Text(
-                text = "Jouw gegevens:",
+                text = "Your profile:",
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleLarge,
             )
@@ -140,7 +162,7 @@ fun UserProfileScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Gebruikersnaam: ",
+                                text = "Username: ",
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
@@ -149,7 +171,7 @@ fun UserProfileScreen(
                             )
                         }
                         Text(
-                            text = "Klik om te bewerken",
+                            text = "Click to edit",
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -163,7 +185,7 @@ fun UserProfileScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Huidige locatie:",
+                                text = "Current loaction:",
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
@@ -172,7 +194,7 @@ fun UserProfileScreen(
                             )
                         }
                         Text(
-                            text = "Klik om te bewerken",
+                            text = "Click to edit",
                             color = Color.Gray,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = modifier.align(Alignment.TopEnd)
@@ -182,13 +204,13 @@ fun UserProfileScreen(
 
                 else -> {
                     // Display error or empty state
-                    Text("Geen gegevens gevonden.", color = Color.Red)
+                    Text("No user data found.", color = Color.Red)
                 }
             }
         }
         Column {
             Text(
-                text = "Gebruikeracties:",
+                text = "User actions:",
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleLarge,
             )
@@ -202,9 +224,9 @@ fun UserProfileScreen(
             verticalAlignment = Alignment.Bottom
 
         ) {
-            Text("Terug naar start")
+            Text("Back to home")
             Text(
-                text = "Klik om uit te voeren",
+                text = "Click to launch",
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -225,9 +247,9 @@ fun UserProfileScreen(
             verticalAlignment = Alignment.Bottom
 
         ) {
-            Text("Log uit.", color = Color.Red)
+            Text("Log out", color = Color.Red)
             Text(
-                text = "Klik om uit te voeren",
+                text = "Click to launch",
                 color = Color.Gray,
                 style = MaterialTheme.typography.bodySmall
             )

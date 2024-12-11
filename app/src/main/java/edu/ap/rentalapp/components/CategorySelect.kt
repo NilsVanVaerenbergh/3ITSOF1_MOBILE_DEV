@@ -40,7 +40,7 @@ fun CategorySelect(
         onClick = { expandedCat = !expandedCat },
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = if (selectedCategory != "Category") Green else Color.White,
-            contentColor = if (selectedCategory != "Category") Color.White else Green.copy(0.6F)
+            contentColor = if (selectedCategory != "Category") Color.White else Green
         ),
         border = BorderStroke(2.dp, Green),
         enabled = enabled,

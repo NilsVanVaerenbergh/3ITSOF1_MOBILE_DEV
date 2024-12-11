@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +45,7 @@ import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.extensions.AuthenticationManager
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
 import edu.ap.rentalapp.extensions.instances.UserServiceSingleton
+import edu.ap.rentalapp.ui.theme.Green
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -54,7 +56,6 @@ import java.util.Locale
 @Composable
 fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostController, id: String) {
 
-    val paddingInBetween = 10.dp
     val context = LocalContext.current
 
     val rentalService = RentalServiceSingleton.getInstance(context)
@@ -230,6 +231,10 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                     }
                 }
                 Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Green,
+                        contentColor = Color.White
+                    ),
                     onClick = {
                         if (appliance!!.rentalDates.isEmpty()) {
                             rentalService.deleteAppliance(appliance!!.id).onEach { response ->
@@ -285,6 +290,10 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                 }
 
                 Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Green,
+                        contentColor = Color.White
+                    ),
                     onClick = {
                         Toast.makeText(
                             context,
@@ -337,6 +346,10 @@ fun ApplianceScreen(modifier: Modifier = Modifier, navController: NavHostControl
                     )
                 }
                 Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Green,
+                        contentColor = Color.White
+                    ),
                     onClick = {
                         navController.navigate("rental/${id}/rent")
                     }

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -36,6 +37,7 @@ import androidx.navigation.NavController
 import edu.ap.rentalapp.R
 import edu.ap.rentalapp.extensions.AuthResponse
 import edu.ap.rentalapp.extensions.AuthenticationManager
+import edu.ap.rentalapp.ui.theme.Green
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -62,14 +64,14 @@ fun SignUpScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Registreren",
+                text = "Sign up",
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.displayMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
             Text(
-                text = "Welkom bij RentalApp",
+                text = "Welcome to RentalApp",
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
@@ -90,12 +92,16 @@ fun SignUpScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = {newPassword -> password = newPassword},
-                placeholder = { Text(text="Wachtwoord") },
+                placeholder = { Text(text="Password") },
                 leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = "lock icon") },
                 visualTransformation = PasswordVisualTransformation()
             )
             Spacer(modifier = Modifier.height(9.dp))
             Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Green,
+                    contentColor = Color.White
+                ),
                 onClick = {
                     if(email.isEmpty() || password.isEmpty()) {
                         Toast.makeText(context, context.getString(R.string.error_empty_input), Toast.LENGTH_LONG).show()
@@ -111,19 +117,23 @@ fun SignUpScreen(
                             }.launchIn(coroutineScope) }
                 },
             ) {
-                Text(text = "Registreer")
+                Text(text = "Sign up")
             }
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Heb je al een account? Log je nu in.",
+                text = "Already have an account? Sign in here.",
             )
             Spacer(modifier = Modifier.height(9.dp))
             Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Green,
+                    contentColor = Color.White
+                ),
                 onClick = {
                     navController.navigate("signIn")
                 },
             ) {
-                Text(text = "Inloggen")
+                Text(text = "Sign in")
             }
 
         }

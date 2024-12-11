@@ -101,7 +101,7 @@ fun AddApplianceScreen(modifier: Modifier = Modifier, navController: NavHostCont
     var address by remember { mutableStateOf("") }
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
-    var zoomLevel by remember { mutableDoubleStateOf(18.0) }
+
 
     LaunchedEffect(user) {
         userService.getUserByUserId(user?.uid.toString()).onEach { result ->

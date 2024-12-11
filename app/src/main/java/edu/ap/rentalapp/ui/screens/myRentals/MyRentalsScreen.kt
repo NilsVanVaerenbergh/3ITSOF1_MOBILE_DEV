@@ -23,7 +23,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -58,7 +61,10 @@ import edu.ap.rentalapp.components.filterItemsByCategory
 import edu.ap.rentalapp.entities.ApplianceDTO
 import edu.ap.rentalapp.entities.ApplianceRentalDate
 import edu.ap.rentalapp.extensions.instances.RentalServiceSingleton
+import edu.ap.rentalapp.ui.theme.Green
+import edu.ap.rentalapp.ui.theme.LightGrey
 import edu.ap.rentalapp.ui.theme.Purple40
+import edu.ap.rentalapp.ui.theme.Red
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -78,13 +84,13 @@ fun MyRentalsScreen(
 
     var selectedCategory by remember { mutableStateOf("Category") }
 
-    Column {
+    Column  {
 
         if (isLoading.value) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
             Row(
-                modifier = modifier,
+                modifier = modifier.padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 OutlinedTextField(
@@ -104,12 +110,12 @@ fun MyRentalsScreen(
                     shape = RoundedCornerShape(99.dp),
                     modifier = modifier.padding(horizontal = 8.dp, vertical = 3.dp).height(46.dp),
                     colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,          // No border when focused
-                        unfocusedIndicatorColor = Color.Transparent,        // No border when unfocused
-                        disabledIndicatorColor = Color.Transparent,         // No border when disabled
-                        focusedContainerColor = Color.LightGray.copy(0.5f), // Background color when focused
-                        unfocusedContainerColor = Color.LightGray.copy(0.5f), // Background color when unfocused
-                        cursorColor = Color.Green                                // Cursor color
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        focusedContainerColor = Color.LightGray.copy(0.5f),
+                        unfocusedContainerColor = Color.LightGray.copy(0.5f),
+                        cursorColor = Color.Green
                     ),
                 )
                 Column(
@@ -149,7 +155,11 @@ fun MyRentalsScreen(
                 modifier = modifier
                     .padding(15.dp)
                     .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally)
+                    .align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Green,
+                    contentColor = Color.White
+                ),
             ) {
                 Row {
                     Text("Add appliance")
@@ -185,6 +195,7 @@ fun MyRentalCard(appliance: ApplianceDTO, context: Context, navController: NavHo
             .clickable {
                 navController.navigate("rental/${appliance.id}")
             },
+        colors = CardDefaults.cardColors(containerColor = LightGrey.copy(0.1f)),
         shape = RoundedCornerShape(8.dp)
     ) {
 
@@ -218,7 +229,7 @@ fun MyRentalCard(appliance: ApplianceDTO, context: Context, navController: NavHo
             ) {
                 Text(
                     text = appliance.name,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, fontFamily = FontFamily.SansSerif),
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
@@ -226,8 +237,8 @@ fun MyRentalCard(appliance: ApplianceDTO, context: Context, navController: NavHo
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White,
                     modifier = Modifier
-                        .background(Purple40, shape = ShapeDefaults.Small)
-                        .padding(2.dp)
+                        .background(Green, shape = ShapeDefaults.Small)
+                        .padding(4.dp)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -242,10 +253,10 @@ fun MyRentalCard(appliance: ApplianceDTO, context: Context, navController: NavHo
                     Text(
                         text = "Not rented",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Black,
+                        color = Color.White,
                         modifier = Modifier
-                            .background(Color.Red, shape = ShapeDefaults.Small)
-                            .padding(2.dp)
+                            .background(Red, shape = ShapeDefaults.Small)
+                            .padding(4.dp)
                     )
                 } else {
                     Text(
@@ -254,9 +265,9 @@ fun MyRentalCard(appliance: ApplianceDTO, context: Context, navController: NavHo
                             Locale.getDefault()
                         ).format(rentalDates.value[0].endDate),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Black,
+                        color = Color.White,
                         modifier = Modifier
-                            .background(Color.Green, shape = ShapeDefaults.Small)
+                            .background(Green, shape = ShapeDefaults.Small)
                             .padding(2.dp)
                     )
                 }

@@ -15,12 +15,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
@@ -32,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.android.gms.tasks.Tasks
@@ -40,6 +47,8 @@ import edu.ap.rentalapp.components.OSM
 import edu.ap.rentalapp.components.findGeoLocationFromAddress
 import edu.ap.rentalapp.components.getAddressFromLatLng
 import edu.ap.rentalapp.entities.User
+import edu.ap.rentalapp.ui.theme.Green
+import edu.ap.rentalapp.ui.theme.LightGrey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -67,18 +76,40 @@ fun EditLocationScreen(
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Address input field
-        TextField(
+        OutlinedTextField(
             value = address,
             onValueChange = { address = it },
-            label = { Text("Set location to") },
-            modifier = Modifier.fillMaxWidth()
+            placeholder = { Text(text = user!!.address) },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Search icon",
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Search
+            ),
+            shape = RoundedCornerShape(99.dp),
+            modifier = modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            colors = TextFieldDefaults.colors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                focusedContainerColor = LightGrey.copy(0.2f),
+                unfocusedContainerColor = LightGrey.copy(0.2f),
+                cursorColor = MaterialTheme.colorScheme.primary
+            ),
         )
 
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Green,
+                contentColor = Color.White
+            ),
             onClick = {
                 coroutineScope.launch {
                     findGeoLocationFromAddress(
@@ -135,6 +166,10 @@ fun EditLocationScreen(
 
         // Submit button
         Button(
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Green,
+                contentColor = Color.White
+            ),
             onClick = {
                 isSaving = true
                 coroutineScope.launch {
